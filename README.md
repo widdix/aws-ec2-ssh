@@ -2,7 +2,7 @@
 
 This showcase demonstrates how you can use your IAM user's public ssh key to get access via SSH to an EC2 instance.
 
-## How to tun this showcase
+## How to run this showcase
 
 1. Upload your public SSH key to IAM: 
  1. Open the Users section in the [IAM Management Console](https://console.aws.amazon.com/iam/home#users)
