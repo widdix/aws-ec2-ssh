@@ -1,4 +1,4 @@
-# Manage AWS EC2 SSH with IAM
+# Manage AWS EC2 SSH access with IAM
 
 This showcase demonstrates how you can use your IAM user's public ssh key to get access via SSH to an EC2 instance.
 
