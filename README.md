@@ -14,7 +14,7 @@ A picture is worth a thousand words:
  * You can restrict that the EC2 instance is only allowed to download public keys from certain IAM users instead of `*`. This way you can restrict SSH access within your account
  * As soon as the public SSH key is deleted from the IAM user a login is no longer possible
 
-## How to run this showcase
+## How to run this showcase (CloudFormation)
 
 1. Upload your public SSH key to IAM: 
  1. Open the Users section in the [IAM Management Console](https://console.aws.amazon.com/iam/home#users)
@@ -25,3 +25,12 @@ A picture is worth a thousand words:
 1. Wait until the stack status is `CREATE_COMPLETE`
 1. Copy the `PublicName` from the stack's outputs
 1. Connect via ssh `ssh $Username@$PublicName` replace `$Username` with your IAM user and `$PublicName` with the stack's output
+
+## How to integrate this system into your environment (non-CloudFormation)
+
+1. Upload your public SSH key to IAM as above
+1. Make sure any instances you want to ssh into contain the correct IAM permissions
+(usually based on IAM Profile, but also possibly based on an IAM user and their credentials).
+Look at the `iam_ssh_policy.json` for an example policy that will permit login.
+1. Make sure those instances automatically run a script similar to `install.sh` (note - that script assumes `git` is installed _and_ instances have access to the Internet; feel free to modify it to instead install from a tarball or using any other mechanism such as Chef or Puppet).
+1. Connect to your instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address.
