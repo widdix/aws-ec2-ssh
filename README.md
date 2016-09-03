@@ -33,4 +33,5 @@ A picture is worth a thousand words:
 (usually based on IAM Profile, but also possibly based on an IAM user and their credentials).
 Look at the `iam_ssh_policy.json` for an example policy that will permit login.
 1. Make sure those instances automatically run a script similar to `install.sh` (note - that script assumes `git` is installed _and_ instances have access to the Internet; feel free to modify it to instead install from a tarball or using any other mechanism such as Chef or Puppet).
+ 1. Alternatively, you can use the `one_script_install.sh` script to install and configure everything, all in one script, without any need for `git` or `tar`. However, be aware that this script embeds both `import_users.sh` and `authorized_keys_command.sh`, so it may fall behind the latest versions in this repo.
 1. Connect to your instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address.
