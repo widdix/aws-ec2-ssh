@@ -1,0 +1,9 @@
+[Unit]
+Description=Run iam_user_sync.service every 10 minutes
+
+[Timer]
+OnCalendar=*:0/10
+Persistent=true
+
+[Install]
+WantedBy=timers.target

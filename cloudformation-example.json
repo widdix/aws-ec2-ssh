@@ -1,6 +1,38 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "EC2 and SSH showcase",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": { "default": "Instance Configuration" },
+          "Parameters": [
+            "VPC",
+            "Subnet",
+            "KeyName",
+            "IAMGroups",
+            "LocalGroups"
+          ]
+        },
+        {
+          "Label": { "default": "Project Configuration" },
+          "Parameters": [
+            "Repo",
+            "Branch"
+          ]
+        }
+      ],
+      "ParameterLabels": {
+        "VPC": { "default": "VPC" },
+        "Subnet": { "default": "Subnet" },
+        "KeyName": { "default": "SSH Key Name" },
+        "IAMGroups": { "default": "Authorized IAM Groups" },
+        "LocalGroups": { "default": "Local Group Mappings" },
+        "Repo": { "default": "Repository" },
+        "Branch": { "default": "Branch" },
+      }
+    }
+  },
   "Parameters": {
     "VPC": {
       "Description": "The VPC the EC2 instance is launched into.",
@@ -9,7 +41,31 @@
     "Subnet": {
       "Description": "The subnet the EC2 instance is launched into.",
       "Type": "AWS::EC2::Subnet::Id"
-    } 
+    },
+    "KeyName": {
+      "Description": "The SSH keypair to use for ec2-user on the instance.",
+      "Type": "AWS::EC2::KeyPair::KeyName"
+    },
+    "IAMGroups": {
+      "Description": "A comma-separated list of IAM group names that are granted SSH access.",
+      "Type": "CommaDelimitedList"
+    },
+    "LocalGroups": {
+      "Description": "A comma-separated list of local group names that are mapped to IAM users.",
+      "Type": "CommaDelimitedList",
+      "Default": "wheel"
+    },
+
+    "Repo": {
+      "Description": "The name of the GitHub repository.",
+      "Type": "String",
+      "Default": "widdix/aws-ec2-ssh",
+    },
+    "Branch": {
+      "Description": "The branch for the GitHub repository.",
+      "Type": "String",
+      "Default": "master",
+    }
   },
   "Mappings": {
     "RegionMap": {
@@ -67,19 +123,13 @@
             "Statement": [{
               "Effect": "Allow",
               "Action": [
-                "iam:ListUsers"
+                "iam:ListUsers",
+                "iam:ListSSHPublicKeys",
+                "iam:GetSSHPublicKey",
+                "iam:GetGroup"
               ],
               "Resource": [
                 "*"
-              ]
-            }, {
-              "Effect": "Allow",
-              "Action": [
-                "iam:ListSSHPublicKeys",
-                "iam:GetSSHPublicKey"
-              ],
-              "Resource": [
-                {"Fn::Join": ["", ["arn:aws:iam::", {"Ref": "AWS::AccountId"},":user/*"]]}
               ]
             }]
           }
@@ -92,44 +142,6 @@
         "AWS::CloudFormation::Init": {
           "config": {
             "files": {
-              "/opt/authorized_keys_command.sh": {
-                "content": {"Fn::Join": ["", [
-                  "#!/bin/bash -e", "\n",
-                  "if [ -z \"$1\" ]; then", "\n",
-                  "  exit 1", "\n",
-                  "fi", "\n",
-                  "aws iam list-ssh-public-keys --user-name \"$1\" --query \"SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]\" --output text | while read KeyId; do", "\n",
-                  "  aws iam get-ssh-public-key --user-name \"$1\" --ssh-public-key-id \"$KeyId\" --encoding SSH --query \"SSHPublicKey.SSHPublicKeyBody\" --output text", "\n",
-                  "done", "\n"
-                ]]},
-                "mode": "000755",
-                "owner": "root",
-                "group": "root"
-              },
-              "/opt/import_users.sh": {
-                "content": {"Fn::Join": ["", [
-                  "#!/bin/bash", "\n",
-                  "aws iam list-users --query \"Users[].[UserName]\" --output text | while read User; do", "\n",
-                  "  if id -u \"$User\" >/dev/null 2>&1; then", "\n",
-                  "    echo \"$User exists\"", "\n",
-                  "  else", "\n",
-                  "    /usr/sbin/adduser \"$User\"", "\n",
-                  "    echo \"$User ALL=(ALL) NOPASSWD:ALL\" > \"/etc/sudoers.d/$User\"", "\n",
-                  "  fi", "\n",
-                  "done", "\n"
-                ]]},
-                "mode": "000755",
-                "owner": "root",
-                "group": "root"
-              },
-              "/etc/cron.d/import_users": {
-                "content": {"Fn::Join": ["", [
-                  "*/10 * * * * root /opt/import_users.sh", "\n"
-                ]]},
-                "mode": "000644",
-                "owner": "root",
-                "group": "root"
-              },
               "/etc/cfn/cfn-hup.conf": {
                 "content": {"Fn::Join": ["", [
                   "[main]", "\n",
@@ -151,15 +163,17 @@
               }
             },
             "commands": {
-              "a_configure_sshd_command": {
-                "command": "sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config"
-              },
-              "b_configure_sshd_commanduser": {
-                "command": "sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config"
-              },
-              "c_import_users": {
-                "command": "./import_users.sh",
-                "cwd": "/opt"
+              "configure_ec2_ssh": {
+                "command": { "Fn::Join": [ "", [
+                  "#!/bin/bash\n",
+                  "export IAM_AUTHORIZED_GROUPS=", { "Fn::Join": [ ",", { "Ref": "IAMGroups" } ] }, "\n",
+                  "export LOCAL_GROUPS=", { "Fn::Join": [ ",", { "Ref": "LocalGroups" } ] }, "\n",
+                  "export REPO=", { "Ref": "Repo" }, "\n",
+                  "export BRANCH=", { "Ref": "Branch" }, "\n",
+                  "curl -sL -o /tmp/install-iam-ssh https://raw.github.com/${REPO}/${BRANCH}/install.sh\n",
+                  "chmod +x /tmp/install-iam-ssh\n",
+                  "/tmp/install-iam-ssh\n"
+                ]]}
               }
             },
             "services": {
@@ -171,8 +185,7 @@
                 },
                 "sshd": {
                   "enabled": "true",
-                  "ensureRunning": "true",
-                  "commands": ["a_configure_sshd_command", "b_configure_sshd_commanduser"]
+                  "ensureRunning": "true"
                 }
               }
             }
@@ -180,6 +193,7 @@
         }
       },
       "Properties": {
+        "KeyName": { "Ref": "KeyName" },
         "ImageId": {"Fn::FindInMap": ["RegionMap", {"Ref": "AWS::Region"}, "AMI"]},
         "IamInstanceProfile": {"Ref": "InstanceProfile"},
         "InstanceType": "t2.micro",
