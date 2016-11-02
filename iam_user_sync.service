@@ -1,0 +1,11 @@
+[Unit]
+Description=Synchronize IAM users with local system
+
+[Service]
+Type=oneshot
+Environment="SSH_AUTHORIZED_KEYS_DIR=@@SSH_AUTHORIZED_KEYS_DIR@@"
+Environment="IAM_AUTHORIZED_GROUPS=@@IAM_AUTHORIZED_GROUPS@@"
+Environment="LOCAL_GROUPS=@@LOCAL_GROUPS@@"
+Environment="LOCAL_MARKER_GROUP=@@LOCAL_MARKER_GROUP@@"
+Environment="PATH=@@PATH@@"
+ExecStart=@@INSTALL_PREFIX@@/bin/iam_user_sync

@@ -1,24 +1,67 @@
-#!/bin/bash
+#!/bin/bash -ex
 
-tmpdir=`mktemp -d`
+INSTALL_PREFIX=${INSTALL_PREFIX:-/usr/local}
+PATH=${INSTALL_PREFIX}/bin:${PATH}
 
-cd $tmpdir
+REPO=${REPO:-widdix/aws-ec2-ssh}
+BRANCH=${BRANCH:-master}
 
-# yum install -y git # if necessary
-# or download a tarball and decompress it instead
-git clone https://github.com/widdix/aws-ec2-ssh.git
+SCHEDULER=${SCHEDULER:-cron}
+SSH_CONFIG_FILE=${SSH_CONFIG_FILE:-/etc/ssh/sshd_config}
+SSH_AUTHORIZED_KEYS_DIR=${SSH_AUTHORIZED_KEYS_DIR:-/etc/ssh/authorized_keys}
+SSH_SERVICE=${SSH_SERVICE:-sshd}
+IAM_AUTHORIZED_GROUPS=${IAM_AUTHORIZED_GROUPS:-}
+LOCAL_GROUPS=${LOCAL_GROUPS:-}
+LOCAL_MARKER_GROUP=${LOCAL_MARKER_GROUP:-iam-user}
 
-cd $tmpdir/aws-ec2-ssh
+export INSTALL_PREFIX PATH REPO BRANCH SCHEDULER SSH_CONFIG_FILE SSH_AUTHORIZED_KEYS_DIR IAM_AUTHORIZED_GROUPS \
+       LOCAL_GROUPS LOCAL_MARKER_GROUP
 
-cp authorized_keys_command.sh /opt/authorized_keys_command.sh
-cp import_users.sh /opt/import_users.sh
+function fetch() {
+  curl -sL https://raw.github.com/${REPO}/${BRANCH}/${1}
+}
 
-sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
-sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
+mkdir -p ${INSTALL_PREFIX}/bin
+fetch iam_user_sync.sh > ${INSTALL_PREFIX}/bin/iam_user_sync
+chmod +x ${INSTALL_PREFIX}/bin/iam_user_sync
 
-echo "*/10 * * * * root /opt/import_users.sh" > /etc/cron.d/import_users
-chmod 0644 /etc/cron.d/import_users
+mkdir -p ${SSH_AUTHORIZED_KEYS_DIR}
+sed -i '/^AuthorizedKeysFile/d' ${SSH_CONFIG_FILE}
+sed -i '$a\' ${SSH_CONFIG_FILE}
+echo "AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys2 ${SSH_AUTHORIZED_KEYS_DIR}/%u" >> ${SSH_CONFIG_FILE}
 
-/opt/import_users.sh
+getent group ${LOCAL_MARKER_GROUP} >/dev/null 2>&1 || groupadd ${LOCAL_MARKER_GROUP}
 
-service sshd restart
+case $SCHEDULER in
+cron)
+  fetch iam_user_sync.cron |
+    sed "s|@@SSH_AUTHORIZED_KEYS_DIR@@|${SSH_AUTHORIZED_KEYS_DIR}|g" |
+    sed "s|@@IAM_AUTHORIZED_GROUPS@@|${IAM_AUTHORIZED_GROUPS}|g" |
+    sed "s|@@LOCAL_GROUPS@@|${LOCAL_GROUPS}|g" |
+    sed "s|@@LOCAL_MARKER_GROUP@@|${LOCAL_MARKER_GROUP}|g" |
+    sed "s|@@INSTALL_PREFIX@@|${INSTALL_PREFIX}|g" |
+    sed "s|@@PATH@@|${PATH}|g" > /etc/cron.d/iam_user_sync
+  chmod 0644 /etc/cron.d/iam_user_sync
+  ;;
+systemd)
+  fetch iam_user_sync.service |
+    sed "s|@@SSH_AUTHORIZED_KEYS_DIR@@|${SSH_AUTHORIZED_KEYS_DIR}|g" |
+    sed "s|@@IAM_AUTHORIZED_GROUPS@@|${IAM_AUTHORIZED_GROUPS}|g" |
+    sed "s|@@LOCAL_GROUPS@@|${LOCAL_GROUPS}|g" |
+    sed "s|@@LOCAL_MARKER_GROUP@@|${LOCAL_MARKER_GROUP}|g" |
+    sed "s|@@INSTALL_PREFIX@@|${INSTALL_PREFIX}|g" |
+    sed "s|@@PATH@@|${PATH}|g" > /etc/systemd/system/iam_user_sync.service
+  fetch iam_user_sync.timer > /etc/systemd/system/iam_user_sync.timer
+  chmod 0644 /etc/systemd/system/iam_user_sync.{service,timer}
+  systemctl daemon-reload
+  systemctl enable iam_user_sync.timer
+  systemctl start iam_user_sync.timer
+  ;;
+*)
+  echo "Unknown scheduler: ${SCHEDULER}" >&1
+  exit 1
+  ;;
+esac
+
+${INSTALL_PREFIX}/bin/iam_user_sync
+command -v service && service ${SSH_SERVICE} restart || true
