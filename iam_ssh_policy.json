@@ -1,26 +1,26 @@
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "Stmt1471562879000",
-            "Effect": "Allow",
-            "Action": [
-                "iam:ListUsers"
-            ],
-            "Resource": [
-                "*"
-            ]
-        },
-        {
-            "Sid": "Stmt1471562943000",
-            "Effect": "Allow",
-            "Action": [
-                "iam:GetSSHPublicKey",
-                "iam:ListSSHPublicKeys"
-            ],
-            "Resource": [
-                "arn:aws:iam::<YOUR_ACCOUNT_ID_HERE>:user/*"
-            ]
-        }
-    ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Stmt1471562879000",
+      "Effect": "Allow",
+      "Action": [
+        "iam:ListUsers"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Sid": "Stmt1471562943000",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetSSHPublicKey",
+        "iam:ListSSHPublicKeys"
+      ],
+      "Resource": [
+        "arn:aws:iam::<YOUR_ACCOUNT_ID_HERE>:user/*"
+      ]
+    }
+  ]
 }
