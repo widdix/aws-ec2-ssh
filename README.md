@@ -34,3 +34,13 @@ A picture is worth a thousand words:
 Look at the `iam_ssh_policy.json` for an example policy that will permit login.
 1. Make sure those instances automatically run a script similar to `install.sh` (note - that script assumes `git` is installed _and_ instances have access to the Internet; feel free to modify it to instead install from a tarball or using any other mechanism such as Chef or Puppet).
 1. Connect to your instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address.
+
+## Limitations
+
+* your EC2 instances need access to the AWS API either via an Internet Gateway + public IP or a Nat Gatetway / instance.
+* it can take up to 10 minutes until a new IAM user can log in
+* if you delete the IAM user / ssh public key and the user is already logged in, the SSH session will not be closed
+* uid's and gid's across multiple servers might not line up correctly (due to when a server was booted, and what users existed at that time). Could affect NFS mounts or Amazon EFS.
+* this solution will work for ~100 IAM users and ~100 EC2 instances. If your setup is much larger (e.g. 10 times more users or 10 times more EC2 instances) you may run into two issues:
+  * IAM API limitations
+  * Disk space issues
