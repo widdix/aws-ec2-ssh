@@ -44,7 +44,7 @@ Look at the `iam_ssh_policy.json` for an example policy that will permit login.
 * this solution will work for ~100 IAM users and ~100 EC2 instances. If your setup is much larger (e.g. 10 times more users or 10 times more EC2 instances) you may run into two issues:
   * IAM API limitations
   * Disk space issues
-* not all IAM user names are allowed in Linux user names. See section **IAM user names and Linux user names** for further details.
+* not all IAM user names are allowed in Linux user names. See section [IAM user names and Linux user names](#iam-user-names-and-linux-user-names) for further details.
 
 ### IAM user names and Linux user names
 
