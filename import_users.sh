@@ -9,9 +9,14 @@ aws iam list-users --query "Users[].[UserName]" --output text | while read User;
   if id -u "$SaveUserName" >/dev/null 2>&1; then
     echo "$SaveUserName exists"
   else
-    #sudo will read each file in /etc/sudoers.d, skipping file names that end in ‘~’ or contain a ‘.’ character to avoid causing problems with package manager or editor temporary/backup files.
-    SaveUserFileName=$(echo "$SaveUserName" | tr "." " ")
     /usr/sbin/adduser "$SaveUserName"
-    echo "$SaveUserName ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$SaveUserFileName"
+
+    # sudo will read each file in /etc/sudoers.d,
+    # skipping file names that end in ‘~’ or contain a ‘.’ character
+    # to avoid causing problems with package manager or editor temporary/backup files.
+    # Uncomment the following lines if you need to give all users sudo privileges
+
+    # SaveUserFileName=$(echo "$SaveUserName" | tr "." " ")
+    # echo "$SaveUserName ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$SaveUserFileName"
   fi
 done
