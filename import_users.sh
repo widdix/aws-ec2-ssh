@@ -2,8 +2,8 @@
 
 # Specify an IAM group for users who should be given sudo privileges, or leave
 # empty to give no-one sudo access.
-SUDOERS_GROUP="";
-[[ -z "${SUDOERS_GROUP}" ]] || SUDOERS=$(aws iam get-group --group-name "${SUDOERS_GROUP}" --query "Users[].[UserName]" --output text);
+SudoersGroup="";
+[[ -z "${SudoersGroup}" ]] || Sudoers=$(aws iam get-group --group-name "${SudoersGroup}" --query "Users[].[UserName]" --output text);
 
 aws iam list-users --query "Users[].[UserName]" --output text | while read User; do
   SaveUserName="$User"
@@ -19,9 +19,9 @@ aws iam list-users --query "Users[].[UserName]" --output text | while read User;
     # echo "$SaveUserName ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$SaveUserFileName"
   fi
 
-  if [[ ! -z "${SUDOERS_GROUP}" ]]; then
+  if [[ ! -z "${SudoersGroup}" ]]; then
     UserIsSudoer="";
-    for Sudoer in $SUDOERS; do
+    for Sudoer in $Sudoers; do
       if [[ "$Sudoer" == "$User" ]]; then
         UserIsSudoer="yes";
       fi
