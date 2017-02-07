@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Specify an IAM group for users who should be given sudo privileges, or leave
+# empty to give no-one sudo access.
+SUDOERS_GROUP="Bioinformaticians";
+[[ -z "${SUDOERS_GROUP}" ]] || SUDOERS=$(aws iam get-group --group-name "${SUDOERS_GROUP}" --query "Users[].[UserName]" --output text);
+
 aws iam list-users --query "Users[].[UserName]" --output text | while read User; do
   SaveUserName="$User"
   SaveUserName=${SaveUserName//"+"/".plus."}
@@ -12,5 +17,10 @@ aws iam list-users --query "Users[].[UserName]" --output text | while read User;
     # Uncomment the following lines if you need to give all users sudo privileges
     # SaveUserFileName=$(echo "$SaveUserName" | tr "." " ")
     # echo "$SaveUserName ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$SaveUserFileName"
+
+    for user in $SUDOERS; do
+      SaveUserFileName=$(echo "$SaveUserName" | tr "." " ")
+      echo "$SaveUserName ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$SaveUserFileName"
+    done
   fi
 done
