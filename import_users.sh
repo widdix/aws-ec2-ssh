@@ -22,13 +22,13 @@ aws iam list-users --query "Users[].[UserName]" --output text | while read User;
   if [[ ! -z "${SUDOERS_GROUP}" ]]; then
     UserIsSudoer="";
     for Sudoer in $SUDOERS; do
-      if "$Sudoer" == "$User"; then
+      if [[ "$Sudoer" == "$User" ]]; then
         UserIsSudoer="yes";
       fi
     done
 
     SaveUserFileName=$(echo "$SaveUserName" | tr "." " ")
-    if "$UserIsSudoer" == "yes"; then
+    if [[ "$UserIsSudoer" == "yes" ]]; then
       echo "$SaveUserName ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$SaveUserFileName"
     else
       [[ ! -f "/etc/sudoers.d/$SaveUserFileName" ]] || rm "/etc/sudoers.d/$SaveUserFileName"
