@@ -5,7 +5,8 @@
       "Sid": "Stmt1471562879000",
       "Effect": "Allow",
       "Action": [
-        "iam:ListUsers"
+        "iam:ListUsers",
+        "iam:GetGroup"
       ],
       "Resource": [
         "*"
