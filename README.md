@@ -10,6 +10,10 @@ A picture is worth a thousand words:
 
 * On first start all IAM users are imported and local users are created
  * The import also runs every 10 minutes (via cron - calls import_users.sh)
+ * You can control which users are given sudo access as:
+  * none (default)
+  * all
+  * only those in a specific IAM group.
 * On every SSH login the EC2 instance tries to fetch the public key(s) from IAM using sshd's `AuthorizedKeysCommand`
  * You can restrict that the EC2 instance is only allowed to download public keys from certain IAM users instead of `*`. This way you can restrict SSH access within your account
  * As soon as the public SSH key is deleted from the IAM user a login is no longer possible
@@ -33,6 +37,7 @@ A picture is worth a thousand words:
 (usually based on IAM Profile, but also possibly based on an IAM user and their credentials).
 Look at the `iam_ssh_policy.json` for an example policy that will permit login.
 1. Make sure those instances automatically run a script similar to `install.sh` (note - that script assumes `git` is installed _and_ instances have access to the Internet; feel free to modify it to instead install from a tarball or using any other mechanism such as Chef or Puppet).
+ * If you want to control sudo access, you should modify the value of ‘SudoersGroup’ in import_users.sh
 1. Connect to your instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address.
 
 ## Limitations
