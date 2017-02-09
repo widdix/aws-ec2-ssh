@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# Specify an IAM group for users who should be given access, or leave this with
+# the value '##ALL##' to give access to all IAM users.
+UsersGroup="##ALL##"
+if [[ "${UsersGroup}" == "##ALL##" ]]; then
+  Users=$(
+    aws iam list-users --query "Users[].[UserName]" --output text
+  )
+else
+  Users=$(
+    aws iam get-group --group-name "${UsersGroup}" --query "Users[].[UserName]" --output text
+  )
+fi
+
 # Specify an IAM group for users who should be given sudo privileges, or leave
 # empty to not change sudo access, or give it the value '##ALL##' to have all
 # users be given sudo rights.
@@ -8,7 +21,7 @@ SudoersGroup=""
   aws iam get-group --group-name "${SudoersGroup}" --query "Users[].[UserName]" --output text
 );
 
-aws iam list-users --query "Users[].[UserName]" --output text | while read User; do
+echo "$Users" | while read User; do
   SaveUserName="$User"
   SaveUserName=${SaveUserName//"+"/".plus."}
   SaveUserName=${SaveUserName//"="/".equal."}
