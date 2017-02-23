@@ -8,6 +8,10 @@ Parameters:
   Subnet:
     Type: 'AWS::EC2::Subnet::Id'
     Description: 'The subnet the EC2 instance is launched into.'
+  AssumeRole:
+    Type: 'String'
+    Description: 'The role to assume to get the IAM users to provision into the instance'
+    Default: ''
 Mappings:
   RegionMap:
     'ap-south-1':
@@ -34,6 +38,9 @@ Mappings:
       AMI: 'ami-de347abe'
     'us-west-2':
       AMI: 'ami-b04e92d0'
+Conditions:
+  UseCrossAccountIAM: !Not [!Equals [!Ref AssumeRole, '']]
+  UseLocalIAM: !Equals [!Ref AssumeRole, '']
 Resources:
   SecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -61,19 +68,37 @@ Resources:
             Service: 'ec2.amazonaws.com'
           Action: 'sts:AssumeRole'
       Path: /
-      Policies:
-      - PolicyName: iam
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
+  CrossAccountRolePolicy:
+    Type: 'AWS::IAM::Policy'
+    Condition: UseCrossAccountIAM
+    Properties:
+      PolicyName: crossaccountiam
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
           - Effect: Allow
-            Action: 'iam:ListUsers'
-            Resource: '*'
-          - Effect: Allow
-            Action:
-            - 'iam:ListSSHPublicKeys'
-            - 'iam:GetSSHPublicKey'
-            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:user/*'
+            Action: 'sts:AssumeRole'
+            Resource: !Ref AssumeRole
+      Roles:
+        - !Ref Role
+  LocalRolePolicy:
+    Type: 'AWS::IAM::Policy'
+    Condition: UseLocalIAM
+    Properties:
+      PolicyName: iam
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: 'iam:ListUsers'
+          Resource: '*'
+        - Effect: Allow
+          Action:
+          - 'iam:ListSSHPublicKeys'
+          - 'iam:GetSSHPublicKey'
+          Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:user/*'
+      Roles:
+        - !Ref Role
   Instance:
     Type: AWS::EC2::Instance
     Metadata:
@@ -81,17 +106,37 @@ Resources:
         config:
           files:
             '/opt/authorized_keys_command.sh':
-              content: |
+              !Sub: |
                 #!/bin/bash -e
                 if [ -z "$1" ]; then
                   exit 1
                 fi
 
+                # Assume a role before contacting AWS IAM to get users and keys.
+                # This can be used if you define your users in one AWS account, while the EC2
+                # instance you use this script runs in another.
+                AssumeRole="${AssumeRole}"
+
+                if [[ ! -z "${!AssumeRole}" ]]
+                then
+                  STSCredentials=$(aws sts assume-role \
+                    --role-arn "${!AssumeRole}" \
+                    --role-session-name something \
+                    --query '[Credentials.SessionToken,Credentials.AccessKeyId,Credentials.SecretAccessKey]' \
+                    --output text)
+
+                  AWS_ACCESS_KEY_ID=$(echo "${!STSCredentials}" | awk '{print $2}')
+                  AWS_SECRET_ACCESS_KEY=$(echo "${!STSCredentials}" | awk '{print $3}')
+                  AWS_SESSION_TOKEN=$(echo "${!STSCredentials}" | awk '{print $1}')
+                  AWS_SECURITY_TOKEN=$(echo "${!STSCredentials}" | awk '{print $1}')
+                  export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
+                fi
+
                 SaveUserName="$1"
-                SaveUserName=${SaveUserName//"+"/".plus."}
-                SaveUserName=${SaveUserName//"="/".equal."}
-                SaveUserName=${SaveUserName//","/".comma."}
-                SaveUserName=${SaveUserName//"@"/".at."}
+                SaveUserName=${!SaveUserName//"+"/".plus."}
+                SaveUserName=${!SaveUserName//"="/".equal."}
+                SaveUserName=${!SaveUserName//","/".comma."}
+                SaveUserName=${!SaveUserName//"@"/".at."}
 
                 aws iam list-ssh-public-keys --user-name "$SaveUserName" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read KeyId; do
                   aws iam get-ssh-public-key --user-name "$SaveUserName" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
@@ -100,34 +145,54 @@ Resources:
               owner: root
               group: root
             '/opt/import_users.sh':
-              content: |
+              !Sub: |
                 #!/bin/bash
+
+                # Assume a role before contacting AWS IAM to get users and keys.
+                # This can be used if you define your users in one AWS account, while the EC2
+                # instance you use this script runs in another.
+                AssumeRole="${AssumeRole}"
+
+                if [[ ! -z "${!AssumeRole}" ]]
+                then
+                  STSCredentials=$(aws sts assume-role \
+                    --role-arn "${!AssumeRole}" \
+                    --role-session-name something \
+                    --query '[Credentials.SessionToken,Credentials.AccessKeyId,Credentials.SecretAccessKey]' \
+                    --output text)
+
+                  AWS_ACCESS_KEY_ID=$(echo "${!STSCredentials}" | awk '{print $2}')
+                  AWS_SECRET_ACCESS_KEY=$(echo "${!STSCredentials}" | awk '{print $3}')
+                  AWS_SESSION_TOKEN=$(echo "${!STSCredentials}" | awk '{print $1}')
+                  AWS_SECURITY_TOKEN=$(echo "${!STSCredentials}" | awk '{print $1}')
+                  export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
+                fi
 
                 # Specify an IAM group for users who should be given sudo privileges, or leave
                 # empty to not change sudo access, or give it the value '##ALL##' to have all
                 # users be given sudo rights.
                 SudoersGroup=""
-                [[ -z "${SudoersGroup}" ]] || [[ "${SudoersGroup}" == "##ALL##" ]] || Sudoers=$(
-                  aws iam get-group --group-name "${SudoersGroup}" --query "Users[].[UserName]" --output text
+                [[ -z "${!SudoersGroup}" ]] || [[ "${!SudoersGroup}" == "##ALL##" ]] || Sudoers=$(
+                  aws iam get-group --group-name "${!SudoersGroup}" --query "Users[].[UserName]" --output text
                 );
 
                 aws iam list-users --query "Users[].[UserName]" --output text | while read User; do
                   SaveUserName="$User"
-                  SaveUserName=${SaveUserName//"+"/".plus."}
-                  SaveUserName=${SaveUserName//"="/".equal."}
-                  SaveUserName=${SaveUserName//","/".comma."}
-                  SaveUserName=${SaveUserName//"@"/".at."}
+                  SaveUserName=${!SaveUserName//"+"/".plus."}
+                  SaveUserName=${!SaveUserName//"="/".equal."}
+                  SaveUserName=${!SaveUserName//","/".comma."}
+                  SaveUserName=${!SaveUserName//"@"/".at."}
                   if ! grep "^$SaveUserName:" /etc/passwd > /dev/null; then
                     /usr/sbin/useradd --create-home --shell /bin/bash "$SaveUserName" 
                   fi
 
-                  if [[ ! -z "${SudoersGroup}" ]]; then
+                  if [[ ! -z "${!SudoersGroup}" ]]; then
                     # sudo will read each file in /etc/sudoers.d, skipping file names that end
                     # in ‘~’ or contain a ‘.’ character to avoid causing problems with package
                     # manager or editor temporary/backup files.
                     SaveUserFileName=$(echo "$SaveUserName" | tr "." " ")
                     SaveUserSudoFilePath="/etc/sudoers.d/$SaveUserFileName"
-                    if [[ "${SudoersGroup}" == "##ALL##" ]] || echo "$Sudoers" | grep "^$User\$" > /dev/null; then
+                    if [[ "${!SudoersGroup}" == "##ALL##" ]] || echo "$Sudoers" | grep "^$User\$" > /dev/null; then
                       echo "$SaveUserName ALL=(ALL) NOPASSWD:ALL" > "$SaveUserSudoFilePath"
                     else
                       [[ ! -f "$SaveUserSudoFilePath" ]] || rm "$SaveUserSudoFilePath"
