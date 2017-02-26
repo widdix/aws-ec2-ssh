@@ -8,7 +8,7 @@ IAM_AUTHORIZED_GROUPS=""
 LOCAL_MARKER_GROUP="iam-synced-users"
 
 # Give the users these local UNIX groups
-LOCAL_GROUPS="wheel"
+LOCAL_GROUPS=""
 
 # Specify an IAM group for users who should be given sudo privileges, or leave
 # empty to not change sudo access, or give it the value '##ALL##' to have all
@@ -69,15 +69,22 @@ function create_or_update_local_user() {
     local iamusername
     local username
     local sudousers
+    local localusergroups
 
     iamusername="${1}"
     username="${2}"
     sudousers="${2}"
+    localusergroups="${LOCAL_MARKER_GROUP}"
+
+    if [ ! -z "${LOCAL_GROUPS}" ]
+    then
+        localusergroups="${LOCAL_GROUPS},${LOCAL_MARKER_GROUP}"
+    fi
 
     id "${username}" >/dev/null 2>&1 \
         || /usr/sbin/useradd --create-home --shell /bin/bash "${username}" \
         && chown -R "${username}:${username}" "/home/${username}"
-    usermod -G "${LOCAL_GROUPS},${LOCAL_MARKER_GROUP}" "${username}"
+    usermod -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
     if [[ ! -z "${SUDOERSGROUP}" ]]

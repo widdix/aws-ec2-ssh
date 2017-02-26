@@ -25,6 +25,11 @@ cp import_users.sh /opt/import_users.sh
 # be given sudo access.
 #sudo sed -i 's/SUDOERSGROUP=""/SUDOERSGROUP="GROUPNAME"/' /opt/import_users.sh
 
+# To control which local groups a user will get, uncomment the line belong
+# changing GROUPNAMES to a comma seperated list of local UNIX groups.
+# If you live it blank, this setting will be ignored
+#sudo sed -i 's/LOCAL_GROUPS=""/LOCAL_GROUPS="GROUPNAMES"/' /opt/import_users.sh
+
 # If your IAM users are in another AWS account, put the AssumeRole ARN here.
 # replace the word ASSUMEROLEARN with the full arn. eg 'arn:aws:iam::$accountid:role/$role'
 # See docs/multiawsaccount.md on how to make this work
