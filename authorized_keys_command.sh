@@ -7,12 +7,12 @@ fi
 # Assume a role before contacting AWS IAM to get users and keys.
 # This can be used if you define your users in one AWS account, while the EC2
 # instance you use this script runs in another.
-AssumeRole=""
+ASSUMEROLE=""
 
-if [[ ! -z "${AssumeRole}" ]]
+if [[ ! -z "${ASSUMEROLE}" ]]
 then
   STSCredentials=$(aws sts assume-role \
-    --role-arn "${AssumeRole}" \
+    --role-arn "${ASSUMEROLE}" \
     --role-session-name something \
     --query '[Credentials.SessionToken,Credentials.AccessKeyId,Credentials.SecretAccessKey]' \
     --output text)
@@ -30,6 +30,6 @@ SaveUserName=${SaveUserName//"="/".equal."}
 SaveUserName=${SaveUserName//","/".comma."}
 SaveUserName=${SaveUserName//"@"/".at."}
 
-aws iam list-ssh-public-keys --user-name "$SaveUserName" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read KeyId; do
+aws iam list-ssh-public-keys --user-name "$SaveUserName" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read -r KeyId; do
   aws iam get-ssh-public-key --user-name "$SaveUserName" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
 done
