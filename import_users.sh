@@ -45,13 +45,15 @@ function get_iam_users() {
     then
         aws iam list-users \
             --query "Users[].[UserName]" \
-            --output text
+            --output text \
+        | sed "s/\r//g"
     else
         for group in $(echo ${IAM_AUTHORIZED_GROUPS} | tr "," " "); do
             aws iam get-group \
                 --group-name "${group}" \
                 --query "Users[].[UserName]" \
-                --output text
+                --output text \
+            | sed "s/\r//g"
         done
     fi
 }
@@ -144,9 +146,9 @@ function sync_accounts() {
     local removed_users
     local user
 
-    iam_users=$(get_iam_users)
-    sudo_users=$(get_sudoers_users)
-    local_users=$(get_local_users)
+    iam_users=$(get_iam_users | sort | uniq)
+    sudo_users=$(get_sudoers_users | sort | uniq)
+    local_users=$(get_local_users | sort | uniq)
 
     intersection=$(echo ${local_users} ${iam_users} | tr " " "\n" | sort | uniq -D | uniq)
     removed_users=$(echo ${local_users} ${intersection} | tr " " "\n" | sort | uniq -u)
