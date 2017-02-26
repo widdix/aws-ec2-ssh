@@ -56,6 +56,13 @@ function get_iam_users() {
     fi
 }
 
+# Get previously synced users
+function get_local_users() {
+    getent group ${LOCAL_MARKER_GROUP} \
+        | cut -d : -f4- \
+        | sed "s/,/ /g"
+}
+
 function get_sudoers_users() {
     [[ -z "${SUDOERSGROUP}" ]] || [[ "${SUDOERSGROUP}" == "##ALL##" ]] ||
         aws iam get-group \
@@ -100,6 +107,12 @@ function create_or_update_local_user() {
     fi
 }
 
+function delete_local_user() {
+    usermod -L -s /sbin/nologin "${1}"
+    pkill -KILL -u "${1}"
+    userdel -r "${1}"
+}
+
 function clean_iam_username() {
     local clean_username="${1}"
     clean_username=${clean_username//"+"/".plus."}
@@ -126,10 +139,18 @@ function sync_accounts() {
     # declare and set some variables
     local iam_users
     local sudo_users
+    local local_users
+    local intersection
+    local removed_users
     local user
 
     iam_users=$(get_iam_users)
     sudo_users=$(get_sudoers_users)
+    local_users=$(get_local_users)
+
+    intersection=$(echo ${local_users} ${iam_users} | tr " " "\n" | sort | uniq -D | uniq)
+    removed_users=$(echo ${local_users} ${intersection} | tr " " "\n" | sort | uniq -u)
+
     # Add or update the users found in IAM
     for user in ${iam_users}; do
         SaveUserName=$(clean_iam_username "${user}")
@@ -137,6 +158,9 @@ function sync_accounts() {
     done
 
     # Remove users no longer in the IAM group(s)
+    for user in ${removed_users}; do
+        delete_local_user "${user}"
+    done
 }
 
 sync_accounts
