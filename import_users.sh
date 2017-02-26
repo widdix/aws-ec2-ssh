@@ -33,15 +33,22 @@ function setup_aws_credentials() {
     fi
 }
 
-# Get all IAM users in the specified groups
+# Get all IAM users (optionally limited by IAM groups)
 function get_iam_users() {
     local group
-    for group in $(echo ${IAM_AUTHORIZED_GROUPS} | tr "," " "); do
-        aws iam get-group \
-            --group-name "${group}" \
+    if [ -z "${IAM_AUTHORIZED_GROUPS}" ]
+    then
+        aws iam list-users \
             --query "Users[].[UserName]" \
             --output text
-    done
+    else
+        for group in $(echo ${IAM_AUTHORIZED_GROUPS} | tr "," " "); do
+            aws iam get-group \
+                --group-name "${group}" \
+                --query "Users[].[UserName]" \
+                --output text
+        done
+    fi
 }
 
 # Create or update a local user based on info from the IAM group
@@ -62,13 +69,6 @@ function clean_iam_username() {
 }
 
 function sync_accounts() {
-    # Do some basic checks
-    if [ -z "${IAM_AUTHORIZED_GROUPS}" ]
-    then
-        echo "Please specify what IAM groups are authorized on this instance"
-        exit 1
-    fi
-
     if [ -z "${LOCAL_MARKER_GROUP}" ]
     then
         echo "Please specify a local group to mark imported users. eg iam-synced-users"
