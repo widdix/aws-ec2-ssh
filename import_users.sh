@@ -7,8 +7,13 @@ IAM_AUTHORIZED_GROUPS="developers-devops-senior,developers-core"
 # Special group to mark users as being synced by our script
 LOCAL_MARKER_GROUP="iam-synced-users"
 
-# Give the users these groups
+# Give the users these local UNIX groups
 LOCAL_GROUPS="wheel"
+
+# Specify an IAM group for users who should be given sudo privileges, or leave
+# empty to not change sudo access, or give it the value '##ALL##' to have all
+# users be given sudo rights.
+SUDOERSGROUP=""
 
 # Assume a role before contacting AWS IAM to get users and keys.
 # This can be used if you define your users in one AWS account, while the EC2
@@ -51,12 +56,41 @@ function get_iam_users() {
     fi
 }
 
+function get_sudoers_users() {
+    [[ -z "${SUDOERSGROUP}" ]] || [[ "${SUDOERSGROUP}" == "##ALL##" ]] ||
+        aws iam get-group \
+            --group-name "${SUDOERSGROUP}" \
+            --query "Users[].[UserName]" \
+            --output text
+}
+
 # Create or update a local user based on info from the IAM group
 function create_or_update_local_user() {
-    id "${1}" >/dev/null 2>&1 \
-        || /usr/sbin/useradd --create-home --shell /bin/bash "${1}" \
-        && chown -R "${1}:${1}" "/home/${1}"
-    usermod -G "${LOCAL_GROUPS},${LOCAL_MARKER_GROUP}" "${1}"
+    local iamusername
+    local username
+    local sudousers
+
+    iamusername="${1}"
+    username="${2}"
+    sudousers="${2}"
+
+    id "${username}" >/dev/null 2>&1 \
+        || /usr/sbin/useradd --create-home --shell /bin/bash "${username}" \
+        && chown -R "${username}:${username}" "/home/${username}"
+    usermod -G "${LOCAL_GROUPS},${LOCAL_MARKER_GROUP}" "${username}"
+
+    # Should we add this user to sudo ?
+    if [[ ! -z "${SUDOERSGROUP}" ]]
+    then
+        SaveUserFileName=$(echo "${username}" | tr "." " ")
+        SaveUserSudoFilePath="/etc/sudoers.d/$SaveUserFileName"
+        if [[ "${SUDOERSGROUP}" == "##ALL##" ]] || echo "${sudousers}" | grep "^${iamusername}\$" > /dev/null
+        then
+            echo "${SaveUserName} ALL=(ALL) NOPASSWD:ALL" > "${SaveUserSudoFilePath}"
+        else
+            [[ ! -f "${SaveUserSudoFilePath}" ]] || rm "${SaveUserSudoFilePath}"
+        fi
+    fi
 }
 
 function clean_iam_username() {
@@ -83,13 +117,15 @@ function sync_accounts() {
 
     # declare and set some variables
     local iam_users
+    local sudo_users
     local user
 
     iam_users=$(get_iam_users)
+    sudo_users=$(get_sudoers_users)
     # Add or update the users found in IAM
     for user in ${iam_users}; do
         SaveUserName=$(clean_iam_username "${user}")
-        create_or_update_local_user "${SaveUserName}"
+        create_or_update_local_user "${user}" "${SaveUserName}" "$sudo_users"
     done
 
     # Remove users no longer in the IAM group(s)
