@@ -133,7 +133,7 @@ function sync_accounts() {
     fi
 
     # Check if local marker group exists, if not, create it
-    /usr/bin/getent group "${LOCAL_MARKER_GROUP}" >/dev/null 2>&1 || groupadd "${LOCAL_MARKER_GROUP}"
+    /usr/bin/getent group "${LOCAL_MARKER_GROUP}" >/dev/null 2>&1 || /usr/sbin/groupadd "${LOCAL_MARKER_GROUP}"
 
     # setup the aws credentials if needed
     setup_aws_credentials
