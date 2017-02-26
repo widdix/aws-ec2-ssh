@@ -60,7 +60,7 @@ function get_iam_users() {
 
 # Get previously synced users
 function get_local_users() {
-    getent group ${LOCAL_MARKER_GROUP} \
+    /usr/bin/getent group ${LOCAL_MARKER_GROUP} \
         | cut -d : -f4- \
         | sed "s/,/ /g"
 }
@@ -92,7 +92,7 @@ function create_or_update_local_user() {
 
     id "${username}" >/dev/null 2>&1 \
         || /usr/sbin/useradd --create-home --shell /bin/bash "${username}" \
-        && chown -R "${username}:${username}" "/home/${username}"
+        && /bin/chown -R "${username}:${username}" "/home/${username}"
     /usr/sbin/usermod -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
@@ -110,9 +110,9 @@ function create_or_update_local_user() {
 }
 
 function delete_local_user() {
-    usermod -L -s /sbin/nologin "${1}"
-    pkill -KILL -u "${1}"
-    userdel -r "${1}"
+    /usr/sbin/usermod -L -s /sbin/nologin "${1}"
+    /usr/bin/pkill -KILL -u "${1}"
+    /usr/sbin/userdel -r "${1}"
 }
 
 function clean_iam_username() {
@@ -133,7 +133,7 @@ function sync_accounts() {
     fi
 
     # Check if local marker group exists, if not, create it
-    getent group "${LOCAL_MARKER_GROUP}" >/dev/null 2>&1 || groupadd "${LOCAL_MARKER_GROUP}"
+    /usr/bin/getent group "${LOCAL_MARKER_GROUP}" >/dev/null 2>&1 || groupadd "${LOCAL_MARKER_GROUP}"
 
     # setup the aws credentials if needed
     setup_aws_credentials
