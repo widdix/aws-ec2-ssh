@@ -93,7 +93,7 @@ function create_or_update_local_user() {
     id "${username}" >/dev/null 2>&1 \
         || /usr/sbin/useradd --create-home --shell /bin/bash "${username}" \
         && chown -R "${username}:${username}" "/home/${username}"
-    usermod -G "${localusergroups}" "${username}"
+    /usr/sbin/usermod -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
     if [[ ! -z "${SUDOERSGROUP}" ]]
