@@ -82,7 +82,7 @@ function create_or_update_local_user() {
 
     iamusername="${1}"
     username="${2}"
-    sudousers="${2}"
+    sudousers="${3}"
     localusergroups="${LOCAL_MARKER_GROUP}"
 
     if [ ! -z "${LOCAL_GROUPS}" ]
