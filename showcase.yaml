@@ -70,6 +70,9 @@ Resources:
             Action: 'iam:ListUsers'
             Resource: '*'
           - Effect: Allow
+            Action: 'iam:GetGroup'
+            Resource: '*'
+          - Effect: Allow
             Action:
             - 'iam:ListSSHPublicKeys'
             - 'iam:GetSSHPublicKey'
