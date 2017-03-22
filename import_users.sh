@@ -121,7 +121,6 @@ function clean_iam_username() {
     clean_username=${clean_username//"="/".equal."}
     clean_username=${clean_username//","/".comma."}
     clean_username=${clean_username//"@"/".at."}
-    clean_username=${clean_username//"-"/".dash."}
     echo "${clean_username}"
 }
 
