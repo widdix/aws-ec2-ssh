@@ -250,14 +250,18 @@ Resources:
       ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
       IamInstanceProfile: !Ref InstanceProfile
       InstanceType: 't2.micro'
-      SecurityGroupIds:
-      - !Ref SecurityGroup
-      SubnetId: !Ref Subnet
       UserData:
         'Fn::Base64': !Sub |
           #!/bin/bash -x
           /opt/aws/bin/cfn-init --verbose --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
           /opt/aws/bin/cfn-signal --exit-code=$? --stack=${AWS::StackName} --region=${AWS::Region}  --resource=Instance
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: true
+        DeleteOnTermination: true
+        SubnetId: !Ref Subnet
+        DeviceIndex: 0
+        GroupSet:
+        - !Ref SecurityGroup
       Tags:
       - Key: Name
         Value: 'AWS EC2 SSH access with IAM showcase'
