@@ -24,12 +24,12 @@ then
   export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
 fi
 
-SaveUserName="$1"
-SaveUserName=${SaveUserName//"+"/".plus."}
-SaveUserName=${SaveUserName//"="/".equal."}
-SaveUserName=${SaveUserName//","/".comma."}
-SaveUserName=${SaveUserName//"@"/".at."}
+UnsaveUserName="$1"
+UnsaveUserName=${UnsaveUserName//".plus."/"+"}
+UnsaveUserName=${UnsaveUserName//".equal."/"="}
+UnsaveUserName=${UnsaveUserName//".comma."/","}
+UnsaveUserName=${UnsaveUserName//".at."/"@"}
 
-aws iam list-ssh-public-keys --user-name "$SaveUserName" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read KeyId; do
-  aws iam get-ssh-public-key --user-name "$SaveUserName" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
+aws iam list-ssh-public-keys --user-name "$UnsaveUserName" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read KeyId; do
+  aws iam get-ssh-public-key --user-name "$UnsaveUserName" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
 done
