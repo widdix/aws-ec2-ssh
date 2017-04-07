@@ -10,34 +10,38 @@ Parameters:
     Description: 'The subnet the EC2 instance is launched into.'
   AssumeRole:
     Type: 'String'
-    Description: 'The role to assume to get the IAM users to provision into the instance'
+    Description: 'Optional IAM role ARN to assume to get the IAM users from another account'
     Default: ''
 Mappings:
   RegionMap:
     'ap-south-1':
-      AMI: 'ami-cacbbea5'
+      AMI: 'ami-9fc7b0f0'
+    'eu-west-2':
+      AMI: 'ami-bfe0eadb'
     'eu-west-1':
-      AMI: 'ami-d41d58a7'
+      AMI: 'ami-c51e3eb6'
     'ap-northeast-2':
-      AMI: 'ami-a04297ce'
+      AMI: 'ami-94bb6dfa'
     'ap-northeast-1':
-      AMI: 'ami-1a15c77b'
+      AMI: 'ami-9f0c67f8'
     'sa-east-1':
-      AMI: 'ami-b777e4db'
+      AMI: 'ami-bb40d8d7'
+    'ca-central-1':
+      AMI: 'ami-eb20928f'
     'ap-southeast-1':
-      AMI: 'ami-7243e611'
+      AMI: 'ami-4dd6782e'
     'ap-southeast-2':
-      AMI: 'ami-55d4e436'
+      AMI: 'ami-28cff44b'
     'eu-central-1':
-      AMI: 'ami-0044b96f'
+      AMI: 'ami-211ada4e'
     'us-east-1':
-      AMI: 'ami-c481fad3'
+      AMI: 'ami-9be6f38c'
     'us-east-2':
-      AMI: 'ami-71ca9114'
+      AMI: 'ami-38cd975d'
     'us-west-1':
-      AMI: 'ami-de347abe'
+      AMI: 'ami-b73d6cd7'
     'us-west-2':
-      AMI: 'ami-b04e92d0'
+      AMI: 'ami-1e299d7e'
 Conditions:
   UseCrossAccountIAM: !Not [!Equals [!Ref AssumeRole, '']]
   UseLocalIAM: !Equals [!Ref AssumeRole, '']
@@ -106,148 +110,69 @@ Resources:
     Metadata:
       'AWS::CloudFormation::Init':
         config:
+          packages:
+            yum:
+              git: []
           files:
-            '/opt/authorized_keys_command.sh':
-              !Sub: |
+            '/opt/install.sh':
+              content: !Sub |
                 #!/bin/bash -e
-                if [ -z "$1" ]; then
-                  exit 1
-                fi
 
-                # Assume a role before contacting AWS IAM to get users and keys.
-                # This can be used if you define your users in one AWS account, while the EC2
-                # instance you use this script runs in another.
-                AssumeRole="${AssumeRole}"
+                tmpdir=$(mktemp -d)
 
-                if [[ ! -z "${!AssumeRole}" ]]
-                then
-                  STSCredentials=$(aws sts assume-role \
-                    --role-arn "${!AssumeRole}" \
-                    --role-session-name something \
-                    --query '[Credentials.SessionToken,Credentials.AccessKeyId,Credentials.SecretAccessKey]' \
-                    --output text)
+                cd "$tmpdir"
 
-                  AWS_ACCESS_KEY_ID=$(echo "${!STSCredentials}" | awk '{print $2}')
-                  AWS_SECRET_ACCESS_KEY=$(echo "${!STSCredentials}" | awk '{print $3}')
-                  AWS_SESSION_TOKEN=$(echo "${!STSCredentials}" | awk '{print $1}')
-                  AWS_SECURITY_TOKEN=$(echo "${!STSCredentials}" | awk '{print $1}')
-                  export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
-                fi
+                git clone https://github.com/widdix/aws-ec2-ssh.git
 
-                SaveUserName="$1"
-                SaveUserName=${!SaveUserName//"+"/".plus."}
-                SaveUserName=${!SaveUserName//"="/".equal."}
-                SaveUserName=${!SaveUserName//","/".comma."}
-                SaveUserName=${!SaveUserName//"@"/".at."}
+                cd "$tmpdir/aws-ec2-ssh"
 
-                aws iam list-ssh-public-keys --user-name "$SaveUserName" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read KeyId; do
-                  aws iam get-ssh-public-key --user-name "$SaveUserName" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
-                done
+                cp authorized_keys_command.sh /opt/authorized_keys_command.sh
+                cp import_users.sh /opt/import_users.sh
+
+                # To control which users are imported/synced, uncomment the line below
+                # changing GROUPNAMES to a comma seperated list of IAM groups you want to sync.
+                # You can specify 1 or more groups, comma seperated, without spaces.
+                # If you leave it blank, all IAM users will be synced.
+                #sudo sed -i 's/IAM_AUTHORIZED_GROUPS=""/IAM_AUTHORIZED_GROUPS="GROUPNAMES"/' /opt/import_users.sh
+
+                # To control which users are given sudo privileges, uncomment the line below
+                # changing GROUPNAME to either the name of the IAM group for sudo users, or
+                # to ##ALL## to give all users sudo access. If you leave it blank, no users will
+                # be given sudo access.
+                #sudo sed -i 's/SUDOERSGROUP=""/SUDOERSGROUP="GROUPNAME"/' /opt/import_users.sh
+
+                # To control which local groups a user will get, uncomment the line belong
+                # changing GROUPNAMES to a comma seperated list of local UNIX groups.
+                # If you live it blank, this setting will be ignored
+                #sudo sed -i 's/LOCAL_GROUPS=""/LOCAL_GROUPS="GROUPNAMES"/' /opt/import_users.sh
+
+                # If your IAM users are in another AWS account, put the AssumeRole ARN here.
+                # replace the word ASSUMEROLEARN with the full arn. eg 'arn:aws:iam::$accountid:role/$role'
+                # See docs/multiawsaccount.md on how to make this work
+                sudo sed -i 's/ASSUMEROLE=""/ASSUMEROLE="${AssumeRole}"/' /opt/import_users.sh
+                sudo sed -i 's/ASSUMEROLE=""/ASSUMEROLE="${AssumeRole}"/' /opt/authorized_keys_command.sh
+
+                sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
+                sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
+
+                echo "*/10 * * * * root /opt/import_users.sh" > /etc/cron.d/import_users
+                chmod 0644 /etc/cron.d/import_users
+
+                /opt/import_users.sh
+
+                service sshd restart
               mode: '000755'
               owner: root
               group: root
-            '/opt/import_users.sh':
-              !Sub: |
-                #!/bin/bash
-
-                # Assume a role before contacting AWS IAM to get users and keys.
-                # This can be used if you define your users in one AWS account, while the EC2
-                # instance you use this script runs in another.
-                AssumeRole="${AssumeRole}"
-
-                if [[ ! -z "${!AssumeRole}" ]]
-                then
-                  STSCredentials=$(aws sts assume-role \
-                    --role-arn "${!AssumeRole}" \
-                    --role-session-name something \
-                    --query '[Credentials.SessionToken,Credentials.AccessKeyId,Credentials.SecretAccessKey]' \
-                    --output text)
-
-                  AWS_ACCESS_KEY_ID=$(echo "${!STSCredentials}" | awk '{print $2}')
-                  AWS_SECRET_ACCESS_KEY=$(echo "${!STSCredentials}" | awk '{print $3}')
-                  AWS_SESSION_TOKEN=$(echo "${!STSCredentials}" | awk '{print $1}')
-                  AWS_SECURITY_TOKEN=$(echo "${!STSCredentials}" | awk '{print $1}')
-                  export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
-                fi
-
-                # Specify an IAM group for users who should be given sudo privileges, or leave
-                # empty to not change sudo access, or give it the value '##ALL##' to have all
-                # users be given sudo rights.
-                SudoersGroup=""
-                [[ -z "${!SudoersGroup}" ]] || [[ "${!SudoersGroup}" == "##ALL##" ]] || Sudoers=$(
-                  aws iam get-group --group-name "${!SudoersGroup}" --query "Users[].[UserName]" --output text
-                );
-
-                aws iam list-users --query "Users[].[UserName]" --output text | while read User; do
-                  SaveUserName="$User"
-                  SaveUserName=${!SaveUserName//"+"/".plus."}
-                  SaveUserName=${!SaveUserName//"="/".equal."}
-                  SaveUserName=${!SaveUserName//","/".comma."}
-                  SaveUserName=${!SaveUserName//"@"/".at."}
-                  if ! grep "^$SaveUserName:" /etc/passwd > /dev/null; then
-                    /usr/sbin/useradd --create-home --shell /bin/bash "$SaveUserName" 
-                  fi
-
-                  if [[ ! -z "${!SudoersGroup}" ]]; then
-                    # sudo will read each file in /etc/sudoers.d, skipping file names that end
-                    # in ‘~’ or contain a ‘.’ character to avoid causing problems with package
-                    # manager or editor temporary/backup files.
-                    SaveUserFileName=$(echo "$SaveUserName" | tr "." " ")
-                    SaveUserSudoFilePath="/etc/sudoers.d/$SaveUserFileName"
-                    if [[ "${!SudoersGroup}" == "##ALL##" ]] || echo "$Sudoers" | grep "^$User\$" > /dev/null; then
-                      echo "$SaveUserName ALL=(ALL) NOPASSWD:ALL" > "$SaveUserSudoFilePath"
-                    else
-                      [[ ! -f "$SaveUserSudoFilePath" ]] || rm "$SaveUserSudoFilePath"
-                    fi
-                  fi
-                done
-              mode: '000755'
-              owner: root
-              group: root
-            '/etc/cron.d/import_users':
-              content: |
-                */10 * * * * root /opt/import_users.sh
-              mode: '000644'
-              owner: root
-              group: root
-            '/etc/cfn/cfn-hup.conf':
-              content: !Sub |
-                [main]
-                stack=${AWS::StackId}
-                region=${AWS::Region}
-                interval=1
-              mode: '000400'
-              owner: root
-              group: root
-            '/etc/cfn/hooks.d/cfn-auto-reloader.conf':
-              content: !Sub |
-                [cfn-auto-reloader-hook]
-                triggers=post.update
-                path=Resources.Instance.Metadata.AWS::CloudFormation::Init
-                action=/opt/aws/bin/cfn-init --verbose --stack=${AWS::StackName}  --region=${AWS::Region}  --resource=Instance
-                runas=root
           commands:
-            a_configure_sshd_command:
-              command: "sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config"
-            b_configure_sshd_commanduser:
-              command: "sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config"
-            c_import_users:
-              command: './import_users.sh'
+            a_install:
+              command: './install.sh'
               cwd: '/opt'
           services:
             sysvinit:
-              'cfn-hup':
-                enabled: true
-                ensureRunning: true
-                files:
-                - '/etc/cfn/cfn-hup.conf'
-                - '/etc/cfn/hooks.d/cfn-auto-reloader.conf'
               sshd:
                 enabled: true
                 ensureRunning: true
-                commands:
-                - 'a_configure_sshd_command'
-                - 'b_configure_sshd_commanduser'
     Properties:
       ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
       IamInstanceProfile: !Ref InstanceProfile
@@ -256,7 +181,7 @@ Resources:
         'Fn::Base64': !Sub |
           #!/bin/bash -x
           /opt/aws/bin/cfn-init --verbose --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
-          /opt/aws/bin/cfn-signal --exit-code=$? --stack=${AWS::StackName} --region=${AWS::Region}  --resource=Instance
+          /opt/aws/bin/cfn-signal --exit-code=$? --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
       NetworkInterfaces:
       - AssociatePublicIpAddress: true
         DeleteOnTermination: true
