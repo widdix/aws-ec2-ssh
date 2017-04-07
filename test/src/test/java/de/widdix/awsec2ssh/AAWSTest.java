@@ -62,7 +62,6 @@ public abstract class AAWSTest extends ATest {
         keyPair.writePrivateKey(osPrivateKey);
         final byte[] sshPrivateKeyBlob = osPrivateKey.toByteArray();
         final String sshPublicKeyBody = osPublicKey.toString();
-        System.out.println(sshPublicKeyBody);
         this.iam.createUser(new CreateUserRequest().withUserName(userName));
         final UploadSSHPublicKeyResult res = this.iam.uploadSSHPublicKey(new UploadSSHPublicKeyRequest().withUserName(userName).withSSHPublicKeyBody(sshPublicKeyBody));
         return new User(userName, sshPrivateKeyBlob, res.getSSHPublicKey().getSSHPublicKeyId());
