@@ -22,7 +22,7 @@ SUDO_GROUP=""
 LOCAL_GROUPS=""
 ASSUME_ROLE=""
 
-while getopts :h opt
+while getopts :hva:i:l:s: opt
 do
     case $opt in
         h)
