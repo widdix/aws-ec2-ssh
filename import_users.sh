@@ -1,24 +1,27 @@
 #!/bin/bash -e
 
+# source configuration if it exists
+[ -f /etc/sysconfig/aws-ec2-ssh ] && . /etc/sysconfig/aws-ec2-ssh
+
 # Which IAM groups have access to this instance
 # Comma seperated list of IAM groups. Leave empty for all available IAM users
-IAM_AUTHORIZED_GROUPS=""
+: ${IAM_AUTHORIZED_GROUPS:=""}
 
 # Special group to mark users as being synced by our script
-LOCAL_MARKER_GROUP="iam-synced-users"
+: ${LOCAL_MARKER_GROUP:="iam-synced-users"}
 
 # Give the users these local UNIX groups
-LOCAL_GROUPS=""
+: ${LOCAL_GROUPS:=""}
 
 # Specify an IAM group for users who should be given sudo privileges, or leave
 # empty to not change sudo access, or give it the value '##ALL##' to have all
 # users be given sudo rights.
-SUDOERSGROUP=""
+: ${SUDOERSGROUP:=""}
 
 # Assume a role before contacting AWS IAM to get users and keys.
 # This can be used if you define your users in one AWS account, while the EC2
 # instance you use this script runs in another.
-ASSUMEROLE=""
+: ${ASSUMEROLE:=""}
 
 function setup_aws_credentials() {
     local stscredentials

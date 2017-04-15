@@ -4,10 +4,13 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
+# source configuration if it exists
+[ -f /etc/sysconfig/aws-ec2-ssh ] && . /etc/sysconfig/aws-ec2-ssh
+
 # Assume a role before contacting AWS IAM to get users and keys.
 # This can be used if you define your users in one AWS account, while the EC2
 # instance you use this script runs in another.
-ASSUMEROLE=""
+: ${ASSUMEROLE:=""}
 
 if [[ ! -z "${ASSUMEROLE}" ]]
 then
