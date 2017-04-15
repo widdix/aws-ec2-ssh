@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Which IAM groups have access to this instance
 # Comma seperated list of IAM groups. Leave empty for all available IAM users

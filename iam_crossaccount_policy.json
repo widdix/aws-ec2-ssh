@@ -1,8 +1,15 @@
 {
-    "Version": "2012-10-17",
-    "Statement": {
-        "Effect": "Allow",
-        "Action": "sts:AssumeRole",
-        "Resource": "arn:aws:iam::<IAM ACCOUNT ID WITH IAM USERS>:role/<ROLE WITH IAM ACCESS>"
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Stmt1471562879000",
+      "Effect": "Allow",
+      "Action": [
+        "sts:AssumeRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::<YOUR_USERS_ACCOUNT_ID_HERE>:role/<YOUR_USERS_ACCOUNT_ROLE_NAME_HERE>"
+      ]
     }
+  ]
 }
