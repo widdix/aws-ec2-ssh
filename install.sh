@@ -15,24 +15,23 @@ cp import_users.sh /opt/import_users.sh
 # changing GROUPNAMES to a comma seperated list of IAM groups you want to sync.
 # You can specify 1 or more groups, comma seperated, without spaces.
 # If you leave it blank, all IAM users will be synced.
-#sed -i 's/IAM_AUTHORIZED_GROUPS=""/IAM_AUTHORIZED_GROUPS="GROUPNAMES"/' /opt/import_users.sh
+#echo 'IAM_AUTHORIZED_GROUPS="GROUPNAMES"' >> /etc/sysconfig/aws-ec2-ssh
 
 # To control which users are given sudo privileges, uncomment the line below
 # changing GROUPNAME to either the name of the IAM group for sudo users, or
 # to ##ALL## to give all users sudo access. If you leave it blank, no users will
 # be given sudo access.
-#sed -i 's/SUDOERSGROUP=""/SUDOERSGROUP="GROUPNAME"/' /opt/import_users.sh
+#echo 'SUDOERSGROUP="GROUPNAME"' >> /etc/sysconfig/aws-ec2-ssh
 
 # To control which local groups a user will get, uncomment the line belong
 # changing GROUPNAMES to a comma seperated list of local UNIX groups.
 # If you live it blank, this setting will be ignored
-#sed -i 's/LOCAL_GROUPS=""/LOCAL_GROUPS="GROUPNAMES"/' /opt/import_users.sh
+#echo 'LOCAL_GROUPS="GROUPNAMES"' >> /etc/sysconfig/aws-ec2-ssh
 
 # If your IAM users are in another AWS account, put the AssumeRole ARN here.
 # replace the word ASSUMEROLEARN with the full arn. eg 'arn:aws:iam::$accountid:role/$role'
 # See docs/multiawsaccount.md on how to make this work
-#sed -i 's/ASSUMEROLE=""/ASSUMEROLE="ASSUMEROLEARN"/' /opt/import_users.sh
-#sed -i 's/ASSUMEROLE=""/ASSUMEROLE="ASSUMEROLEARN"/' /opt/authorized_keys_command.sh
+#echo 'ASSUMEROLE="ASSUMEROLEARN"' >> /etc/sysconfig/aws-ec2-ssh
 
 sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
 sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
