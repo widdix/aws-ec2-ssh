@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 # source configuration if it exists
-[ -f /etc/sysconfig/aws-ec2-ssh ] && . /etc/sysconfig/aws-ec2-ssh
+[ -f /etc/aws-ec2-ssh.conf ] && . /etc/aws-ec2-ssh.conf
 
 # Which IAM groups have access to this instance
 # Comma seperated list of IAM groups. Leave empty for all available IAM users
