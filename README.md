@@ -66,6 +66,8 @@ This solution will use the following mapping for those special characters when c
 
 So instead of `name@email.com` you will need to use `name.at.email.com` when login via SSH.
 
+Linux user names may only be up to 32 characters long.
+
 ## Using a multi account strategy with a central IAM user account
 
 If you are using multiple AWS accounts you probably have one AWS account with all the IAM users (I will call it **users account**), and separate AWS accounts for your environments (I will call it **dev account**). Support for this is provided using the AssumeRole functionality in AWS.
