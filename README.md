@@ -44,7 +44,7 @@ A picture is worth a thousand words:
  1. Click the **Upload SSH public key** button at the bottom of the page
  1. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
 1. Attach the IAM permissions defined in `iam_ssh_policy.json` to the EC2 instances (by creating an IAM role and an Instance Profile)
-1. Run the `install.sh` script as `root` on the EC2 instances
+1. Run the `install.sh` script as `root` on the EC2 instances. Run `install.sh -h` for help.
 1. Connect to your EC2 instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address
 
 ## IAM user names and Linux user names
