@@ -240,7 +240,7 @@ Resources:
               group: root
           commands:
             a_install:
-              command: !Sub './install.sh -a ${AssumeRole}'
+              command: !Sub './install.sh -a "${AssumeRole}"'
               cwd: '/opt'
           services:
             sysvinit:
