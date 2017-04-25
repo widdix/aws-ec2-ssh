@@ -44,7 +44,7 @@ A picture is worth a thousand words:
  4. Click the **Upload SSH public key** button at the bottom of the page
  5. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
 2. Attach the IAM permissions defined in `iam_ssh_policy.json` to the EC2 instances (by creating an IAM role and an Instance Profile)
-3. Run the `install.sh` script as `root` on the EC2 instances
+3. Run the `install.sh` script as `root` on the EC2 instances. Run `install.sh -h` for help.
 4. Connect to your EC2 instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address
 
 ## IAM user names and Linux user names
@@ -66,16 +66,17 @@ This solution will use the following mapping for those special characters when c
 
 So instead of `name@email.com` you will need to use `name.at.email.com` when login via SSH.
 
+Linux user names may only be up to 32 characters long.
+
 ## Configuration
 
-There are a couple of things you can configure by editing/creating the file `/etc/sysconfig/aws-ec2-ssh` and adding
+There are a couple of things you can configure by editing/creating the file `/etc/aws-ec2-ssh.conf` and adding
 one or more of the following lines:
 
 ASSUMEROLE="IAM-role-arn" # IAM Role ARN for multi account. See below for more info
 IAM_AUTHORIZED_GROUPS="GROUPNAMES" # Comma seperated list of IAM groups to import
 SUDOERSGROUP="GROUPNAME" # IAM group that should have sudo access
 LOCAL_GROUPS="GROUPNAMES" # Comma seperated list of UNIX groups to add the users in
-
 
 ## Using a multi account strategy with a central IAM user account
 
@@ -105,7 +106,7 @@ For your EC2 instances, you need a IAM role that allows the `sts:AssumeRole` act
 6. In the **Permissions** tab, expand **Inline Policies** and create a new inline policy
 7. Select **Custom Policy**
 8. Paste the content of the `iam_crossaccount_policy.json` file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account** and `<YOUR_USERS_ACCOUNT_ROLE_NAME_HERE>` with the IAM rol name that you created in the **users account**
-9. Create/edit the file `/etc/sysconfig/aws-ec2-ssh` and add this line: `ASSUMEROLE="IAM-ROLE-ARN`
+9. Create/edit the file `/etc/aws-ec2-ssh.conf` and add this line: `ASSUMEROLE="IAM-ROLE-ARN`
 
 ## Limitations
 
