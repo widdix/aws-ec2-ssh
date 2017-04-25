@@ -8,6 +8,7 @@ IAM_AUTHORIZED_GROUPS=""
 LOCAL_MARKER_GROUP="iam-synced-users"
 
 # Give the users these local UNIX groups
+# Comma seperated list
 LOCAL_GROUPS=""
 
 # Specify an IAM group for users who should be given sudo privileges, or leave

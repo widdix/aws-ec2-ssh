@@ -8,10 +8,16 @@ Install import_users.sh and authorized_key_commands.
     -h              display this help and exit
     -v              verbose mode.
 
-    -a arn          AssumeRole ARN to get users from another AWS account
-    -i group,group  Comma seperated list of IAM groups that should have ssh access
-    -l group,group  Comma seperated list of UNIX groups to add the users to
-    -s group        IAM group that should have sudo access. use ##ALL## if all users need it
+    -a arn          Assume a role before contacting AWS IAM to get users and keys.
+                    This can be used if you define your users in one AWS account, while the EC2
+                    instance you use this script runs in another.
+    -i group,group  Which IAM groups have access to this instance
+                    Comma seperated list of IAM groups. Leave empty for all available IAM users
+    -l group,group  Give the users these local UNIX groups
+                    Comma seperated list
+    -s group        Specify an IAM group for users who should be given sudo privileges, or leave
+                    empty to not change sudo access, or give it the value '##ALL##' to have all
+                    users be given sudo rights.
 
 
 EOF
