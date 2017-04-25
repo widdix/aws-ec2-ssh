@@ -115,7 +115,7 @@ Resources:
               git: []
           files:
             '/opt/install.sh':
-              content: !Sub |
+              content: |
                 #!/bin/bash -e
 
                 show_help() {
