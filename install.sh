@@ -79,7 +79,7 @@ cp import_users.sh /opt/import_users.sh
 # If you leave it blank, all IAM users will be synced.
 if [ "${IAM_GROUPS}" != "" ]
 then
-    sed -i "s/IAM_AUTHORIZED_GROUPS=\"\"/IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"/" /opt/import_users.sh
+    echo "IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
 # To control which users are given sudo privileges, uncomment the line below
@@ -88,7 +88,7 @@ fi
 # be given sudo access.
 if [ "${SUDO_GROUP}" != "" ]
 then
-    sed -i "s/SUDOERSGROUP=\"\"/SUDOERSGROUP=\"${SUDO_GROUP}\"/" /opt/import_users.sh
+    echo "SUDOERSGROUP=\"${SUDO_GROUP}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
 # To control which local groups a user will get, uncomment the line belong
@@ -96,7 +96,7 @@ fi
 # If you live it blank, this setting will be ignored
 if [ "${LOCAL_GROUPS}" != "" ]
 then
-    sed -i "s/LOCAL_GROUPS=\"\"/LOCAL_GROUPS=\"${LOCAL_GROUPS}\"/" /opt/import_users.sh
+    echo "LOCAL_GROUPS=\"${LOCAL_GROUPS}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
 # If your IAM users are in another AWS account, put the AssumeRole ARN here.
@@ -104,8 +104,7 @@ fi
 # See docs/multiawsaccount.md on how to make this work
 if [ "${ASSUME_ROLE}" != "" ]
 then
-    sed -i "s/ASSUMEROLE=\"\"/ASSUMEROLE=\"${ASSUME_ROLE}\"/" /opt/import_users.sh
-    sed -i "s/ASSUMEROLE=\"\"/ASSUMEROLE=\"${ASSUME_ROLE}\"/" /opt/authorized_keys_command.sh
+    echo "ASSUMEROLE=\"${ASSUME_ROLE}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
 sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
