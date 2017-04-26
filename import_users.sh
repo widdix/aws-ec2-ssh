@@ -158,7 +158,12 @@ function sync_accounts() {
     # Add or update the users found in IAM
     for user in ${iam_users}; do
         SaveUserName=$(clean_iam_username "${user}")
-        create_or_update_local_user "${user}" "${SaveUserName}" "$sudo_users"
+        if [ "${#SaveUserName}" -le "32" ]
+        then
+            create_or_update_local_user "${user}" "${SaveUserName}" "$sudo_users"
+        else
+            echo "Can not import IAM user ${user}. Local user name ${SaveUserName} is longer than 32 characters."
+        fi
     done
 
     # Remove users no longer in the IAM group(s)
