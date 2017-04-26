@@ -26,26 +26,26 @@ A picture is worth a thousand words:
 
 1. Upload your public SSH key to IAM: 
  1. Open the Users section in the [IAM Management Console](https://console.aws.amazon.com/iam/home#users)
- 1. Click the row with your user
- 1. Select the **Security Credentials** tab
- 1. Click the **Upload SSH public key** button at the bottom of the page
- 1. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
-1. Create a CloudFormation stack based on the `showcase.yaml` template
-1. Wait until the stack status is `CREATE_COMPLETE`
-1. Copy the `PublicName` from the stack's outputs
-1. Connect to the EC2 instance via `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` with the stack's output
+ 2. Click the row with your user
+ 3. Select the **Security Credentials** tab
+ 4. Click the **Upload SSH public key** button at the bottom of the page
+ 5. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
+2. Create a CloudFormation stack based on the `showcase.yaml` template
+3. Wait until the stack status is `CREATE_COMPLETE`
+4. Copy the `PublicName` from the stack's outputs
+5. Connect to the EC2 instance via `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` with the stack's output
 
 ## How to integrate this system into your environment
 
 1. Upload your public SSH key to IAM: 
  1. Open the Users section in the [IAM Management Console](https://console.aws.amazon.com/iam/home#users)
- 1. Click the row with your user
- 1. Select the **Security Credentials** tab
- 1. Click the **Upload SSH public key** button at the bottom of the page
- 1. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
-1. Attach the IAM permissions defined in `iam_ssh_policy.json` to the EC2 instances (by creating an IAM role and an Instance Profile)
-1. Run the `install.sh` script as `root` on the EC2 instances
-1. Connect to your EC2 instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address
+ 2. Click the row with your user
+ 3. Select the **Security Credentials** tab
+ 4. Click the **Upload SSH public key** button at the bottom of the page
+ 5. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
+2. Attach the IAM permissions defined in `iam_ssh_policy.json` to the EC2 instances (by creating an IAM role and an Instance Profile)
+3. Run the `install.sh` script as `root` on the EC2 instances. Run `install.sh -h` for help.
+4. Connect to your EC2 instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address
 
 ## IAM user names and Linux user names
 
@@ -66,6 +66,18 @@ This solution will use the following mapping for those special characters when c
 
 So instead of `name@email.com` you will need to use `name.at.email.com` when login via SSH.
 
+Linux user names may only be up to 32 characters long.
+
+## Configuration
+
+There are a couple of things you can configure by editing/creating the file `/etc/aws-ec2-ssh.conf` and adding
+one or more of the following lines:
+
+ASSUMEROLE="IAM-role-arn" # IAM Role ARN for multi account. See below for more info
+IAM_AUTHORIZED_GROUPS="GROUPNAMES" # Comma seperated list of IAM groups to import
+SUDOERSGROUP="GROUPNAME" # IAM group that should have sudo access
+LOCAL_GROUPS="GROUPNAMES" # Comma seperated list of UNIX groups to add the users in
+
 ## Using a multi account strategy with a central IAM user account
 
 If you are using multiple AWS accounts you probably have one AWS account with all the IAM users (I will call it **users account**), and separate AWS accounts for your environments (I will call it **dev account**). Support for this is provided using the AssumeRole functionality in AWS.
@@ -73,28 +85,28 @@ If you are using multiple AWS accounts you probably have one AWS account with al
 ### Setup users account
 
 1. In the **users account**, create a new IAM role
-1. Select Role Type **Role for Cross-Account Access** and select the option **Provide access between AWS accounts you own**
-1. Put the **users account** number in **Account ID** and leave **Require MFA** unchecked
-1. Skip attaching a policy (we will do this soon)
-1. Review the new role and create it
-1. Select the newly created role
-1. In the **Permissions** tab, expand **Inline Policies** and create a new inline policy
-1. Select **Custom Policy**
-1. Paste the content of the `iam_ssh_policy.json` file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account**.
+2. Select Role Type **Role for Cross-Account Access** and select the option **Provide access between AWS accounts you own**
+3. Put the **users account** number in **Account ID** and leave **Require MFA** unchecked
+4. Skip attaching a policy (we will do this soon)
+5. Review the new role and create it
+6. Select the newly created role
+7. In the **Permissions** tab, expand **Inline Policies** and create a new inline policy
+8. Select **Custom Policy**
+9. Paste the content of the `iam_ssh_policy.json` file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account**.
 
 ### Setup dev account
 
 For your EC2 instances, you need a IAM role that allows the `sts:AssumeRole` action
 
 1. In the **dev account**, create a new IAM role
-1. Select ROle Type **AWS Service Roles** and select the option **Amazon EC2**
-1. Skip attaching a policy (we will do this soon)
-1. Review the new role and create it
-1. Select the newly created role
-1. In the **Permissions** tab, expand **Inline Policies** and create a new inline policy
-1. Select **Custom Policy**
-1. Paste the content of the `iam_crossaccount_policy.json` file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account** and `<YOUR_USERS_ACCOUNT_ROLE_NAME_HERE>` with the IAM rol name that you created in the **users account**
-1. Replace the `ASSUMEROLE` placeholder with the ARN of the IAM role in `import_users.sh` and `authorized_keys_command.sh`
+2. Select ROle Type **AWS Service Roles** and select the option **Amazon EC2**
+3. Skip attaching a policy (we will do this soon)
+4. Review the new role and create it
+5. Select the newly created role
+6. In the **Permissions** tab, expand **Inline Policies** and create a new inline policy
+7. Select **Custom Policy**
+8. Paste the content of the `iam_crossaccount_policy.json` file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account** and `<YOUR_USERS_ACCOUNT_ROLE_NAME_HERE>` with the IAM rol name that you created in the **users account**
+9. Create/edit the file `/etc/aws-ec2-ssh.conf` and add this line: `ASSUMEROLE="IAM-ROLE-ARN`
 
 ## Limitations
 
