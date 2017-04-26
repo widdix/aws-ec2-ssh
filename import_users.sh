@@ -88,6 +88,13 @@ function create_or_update_local_user() {
     sudousers="${3}"
     localusergroups="${LOCAL_MARKER_GROUP}"
 
+    # check that username contains only alphanumeric, period (.), underscore (_), and hyphen (-) for a safe eval
+    if [[ ! "${username}" =~ ^[0-9a-zA-z\._\-]{1,32}$ ]]
+    then
+        echo "Local user name ${username} contains illegal characters"
+        exit 1
+    fi
+
     if [ ! -z "${LOCAL_GROUPS}" ]
     then
         localusergroups="${LOCAL_GROUPS},${LOCAL_MARKER_GROUP}"
@@ -95,7 +102,7 @@ function create_or_update_local_user() {
 
     id "${username}" >/dev/null 2>&1 \
         || /usr/sbin/useradd --create-home --shell /bin/bash "${username}" \
-        && /bin/chown -R "${username}:${username}" "~${username}"
+        && /bin/chown -R "${username}:${username}" "$(eval echo ~$username)"
     /usr/sbin/usermod -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
