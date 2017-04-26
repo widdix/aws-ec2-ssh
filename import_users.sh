@@ -95,7 +95,7 @@ function create_or_update_local_user() {
 
     id "${username}" >/dev/null 2>&1 \
         || /usr/sbin/useradd --create-home --shell /bin/bash "${username}" \
-        && /bin/chown -R "${username}:${username}" "/home/${username}"
+        && /bin/chown -R "${username}:${username}" "~${username}"
     /usr/sbin/usermod -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
