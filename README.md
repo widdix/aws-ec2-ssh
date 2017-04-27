@@ -86,7 +86,7 @@ If you are using multiple AWS accounts you probably have one AWS account with al
 
 1. In the **users account**, create a new IAM role
 2. Select Role Type **Role for Cross-Account Access** and select the option **Provide access between AWS accounts you own**
-3. Put the **users account** number in **Account ID** and leave **Require MFA** unchecked
+3. Put the **dev account** number in **Account ID** and leave **Require MFA** unchecked
 4. Skip attaching a policy (we will do this soon)
 5. Review the new role and create it
 6. Select the newly created role
