@@ -1,7 +1,7 @@
 %define name aws-ec2-ssh
-%define version 0.9
-%define unmangled_version 0.9
-%define release 1%{?dist}
+%define version 0
+%define unmangled_version 0
+%define release 1.20170427.git.5a15fc6%{?dist}
 
 
 Name:       %{name}
@@ -38,7 +38,7 @@ mkdir -p ${RPM_BUILD_ROOT}%{_bindir}
 mkdir -p ${RPM_BUILD_ROOT}/etc/sysconfig
 install -m 755 import_users.sh ${RPM_BUILD_ROOT}%{_bindir}
 install -m 755 authorized_keys_command.sh ${RPM_BUILD_ROOT}%{_bindir}
-install -m 755 aws-ec2-ssh.config.in ${RPM_BUILD_ROOT}/etc/sysconfig/aws-ec2-ssh
+install -m 755 aws-ec2-ssh.conf ${RPM_BUILD_ROOT}/etc/aws-ec2-ssh.conf
 
 %post
 sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh:g' /etc/ssh/sshd_config
@@ -60,10 +60,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(-,root,root)
 %attr(755,root,root) %{_bindir}/import_users.sh
 %attr(755,root,root) %{_bindir}/authorized_keys_command.sh
-%config /etc/sysconfig/aws-ec2-ssh
+%config /etc/aws-ec2-ssh.conf
 
 
 %changelog
 
-* Sat Apr 15 2017 Michiel van Baak <michiel@vanbaak.eu> - 0.9-1
+* Thu Apr 27 2017 Michiel van Baak <michiel@vanbaak.eu> - post-1.0-master
+- use correct versioning based on fedora package versioning guide
+
+* Sat Apr 15 2017 Michiel van Baak <michiel@vanbaak.eu> - pre-1.0
 - Initial RPM spec file
