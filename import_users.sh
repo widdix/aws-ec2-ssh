@@ -89,7 +89,7 @@ function create_or_update_local_user() {
     localusergroups="${LOCAL_MARKER_GROUP}"
 
     # check that username contains only alphanumeric, period (.), underscore (_), and hyphen (-) for a safe eval
-    if [[ ! "${username}" =~ ^[0-9a-zA-z\._\-]{1,32}$ ]]
+    if [[ ! "${username}" =~ ^[0-9a-zA-Z\._\-]{1,32}$ ]]
     then
         echo "Local user name ${username} contains illegal characters"
         exit 1
