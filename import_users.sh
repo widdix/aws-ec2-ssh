@@ -23,6 +23,12 @@
 # instance you use this script runs in another.
 : ${ASSUMEROLE:=""}
 
+# Possibility to provide a custom useradd program
+: ${USERADD_PROGRAM:="/usr/sbin/useradd"}
+
+# Possibility to provide custom useradd arguments
+: ${USERADD_ARGS:="--create-home --shell /bin/bash"}
+
 function setup_aws_credentials() {
     local stscredentials
     if [[ ! -z "${ASSUMEROLE}" ]]
@@ -101,7 +107,7 @@ function create_or_update_local_user() {
     fi
 
     id "${username}" >/dev/null 2>&1 \
-        || /usr/sbin/useradd --create-home --shell /bin/bash "${username}" \
+        || ${USERADD_PROGRAM} ${USERADD_ARGS} "${username}" \
         && /bin/chown -R "${username}:${username}" "$(eval echo ~$username)"
     /usr/sbin/usermod -G "${localusergroups}" "${username}"
 

@@ -77,6 +77,8 @@ ASSUMEROLE="IAM-role-arn" # IAM Role ARN for multi account. See below for more i
 IAM_AUTHORIZED_GROUPS="GROUPNAMES" # Comma seperated list of IAM groups to import
 SUDOERSGROUP="GROUPNAME" # IAM group that should have sudo access
 LOCAL_GROUPS="GROUPNAMES" # Comma seperated list of UNIX groups to add the users in
+USERADD_PROGRAM="/usr/sbin/useradd" # The useradd program to use. defaults to `/usr/sbin/useradd`
+USERADD_ARGS="ARGS" # Arguments for the useradd program. defaults to `--create-home --shell /bin/bash`
 
 ## Using a multi account strategy with a central IAM user account
 
