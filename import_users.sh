@@ -88,6 +88,13 @@ function create_or_update_local_user() {
     sudousers="${3}"
     localusergroups="${LOCAL_MARKER_GROUP}"
 
+    # check that username contains only alphanumeric, period (.), underscore (_), and hyphen (-) for a safe eval
+    if [[ ! "${username}" =~ ^[0-9a-zA-Z\._\-]{1,32}$ ]]
+    then
+        echo "Local user name ${username} contains illegal characters"
+        exit 1
+    fi
+
     if [ ! -z "${LOCAL_GROUPS}" ]
     then
         localusergroups="${LOCAL_GROUPS},${LOCAL_MARKER_GROUP}"
@@ -95,7 +102,7 @@ function create_or_update_local_user() {
 
     id "${username}" >/dev/null 2>&1 \
         || /usr/sbin/useradd --create-home --shell /bin/bash "${username}" \
-        && /bin/chown -R "${username}:${username}" "/home/${username}"
+        && /bin/chown -R "${username}:${username}" "$(eval echo ~$username)"
     /usr/sbin/usermod -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
@@ -158,7 +165,12 @@ function sync_accounts() {
     # Add or update the users found in IAM
     for user in ${iam_users}; do
         SaveUserName=$(clean_iam_username "${user}")
-        create_or_update_local_user "${user}" "${SaveUserName}" "$sudo_users"
+        if [ "${#SaveUserName}" -le "32" ]
+        then
+            create_or_update_local_user "${user}" "${SaveUserName}" "$sudo_users"
+        else
+            echo "Can not import IAM user ${user}. Local user name ${SaveUserName} is longer than 32 characters."
+        fi
     done
 
     # Remove users no longer in the IAM group(s)

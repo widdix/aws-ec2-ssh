@@ -86,7 +86,7 @@ If you are using multiple AWS accounts you probably have one AWS account with al
 
 1. In the **users account**, create a new IAM role
 2. Select Role Type **Role for Cross-Account Access** and select the option **Provide access between AWS accounts you own**
-3. Put the **users account** number in **Account ID** and leave **Require MFA** unchecked
+3. Put the **dev account** number in **Account ID** and leave **Require MFA** unchecked
 4. Skip attaching a policy (we will do this soon)
 5. Review the new role and create it
 6. Select the newly created role
@@ -106,7 +106,7 @@ For your EC2 instances, you need a IAM role that allows the `sts:AssumeRole` act
 6. In the **Permissions** tab, expand **Inline Policies** and create a new inline policy
 7. Select **Custom Policy**
 8. Paste the content of the `iam_crossaccount_policy.json` file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account** and `<YOUR_USERS_ACCOUNT_ROLE_NAME_HERE>` with the IAM rol name that you created in the **users account**
-9. Create/edit the file `/etc/aws-ec2-ssh.conf` and add this line: `ASSUMEROLE="IAM-ROLE-ARN`
+9. Create/edit the file `/etc/aws-ec2-ssh.conf` and add this line: `ASSUMEROLE="IAM-ROLE-ARN` or run the install.sh script with the -a argument
 
 ## Limitations
 
