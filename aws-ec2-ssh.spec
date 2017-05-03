@@ -1,7 +1,6 @@
 %define name aws-ec2-ssh
-%define version 0
-%define unmangled_version 0
-%define release 1.20170427.git.5a15fc6%{?dist}
+%define version %{jenkins_version}
+%define release 1%{?dist}
 
 
 Name:       %{name}
@@ -12,7 +11,7 @@ Release:    %{release}
 Group:      System/Administration
 License:    MIT
 URL:        https://cloudonaut.io/manage-aws-ec2-ssh-access-with-iam/
-Source0:    %{name}-%{unmangled_version}.tar.gz
+Source0:    https://github.com/widdix/aws-ec2-ssh/archive/v%{version}.tar.gz
 BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch:  noarch
 BuildRoot:  %{_tmppath}/%{name}-root}
