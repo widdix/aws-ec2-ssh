@@ -73,12 +73,14 @@ Linux user names may only be up to 32 characters long.
 There are a couple of things you can configure by editing/creating the file `/etc/aws-ec2-ssh.conf` and adding
 one or more of the following lines:
 
-ASSUMEROLE="IAM-role-arn" # IAM Role ARN for multi account. See below for more info
-IAM_AUTHORIZED_GROUPS="GROUPNAMES" # Comma seperated list of IAM groups to import
-SUDOERSGROUP="GROUPNAME" # IAM group that should have sudo access
-LOCAL_GROUPS="GROUPNAMES" # Comma seperated list of UNIX groups to add the users in
-USERADD_PROGRAM="/usr/sbin/useradd" # The useradd program to use. defaults to `/usr/sbin/useradd`
-USERADD_ARGS="ARGS" # Arguments for the useradd program. defaults to `--create-home --shell /bin/bash`
+```
+ASSUMEROLE="IAM-role-arn"                      # IAM Role ARN for multi account. See below for more info
+IAM_AUTHORIZED_GROUPS="GROUPNAMES"             # Comma seperated list of IAM groups to import
+SUDOERSGROUP="GROUPNAME"                       # IAM group that should have sudo access
+LOCAL_GROUPS="GROUPNAMES"                      # Comma seperated list of UNIX groups to add the users in
+USERADD_PROGRAM="/usr/sbin/useradd"            # The useradd program to use. defaults to `/usr/sbin/useradd`
+USERADD_ARGS="--create-home --shell /bin/bash" # Arguments for the useradd program. defaults to `--create-home --shell /bin/bash`
+```
 
 ## Using a multi account strategy with a central IAM user account
 

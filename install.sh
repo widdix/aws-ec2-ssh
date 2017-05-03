@@ -5,21 +5,23 @@ cat << EOF
 Usage: ${0##*/} [-hv] [-a ARN] [-i GROUP,GROUP,...] [-l GROUP,GROUP,...] [-s GROUP] [-p PROGRAM] [-u "ARGUMENTS"]
 Install import_users.sh and authorized_key_commands.
 
-    -h              display this help and exit
-    -v              verbose mode.
+    -h                 display this help and exit
+    -v                 verbose mode.
 
-    -a arn          Assume a role before contacting AWS IAM to get users and keys.
-                    This can be used if you define your users in one AWS account, while the EC2
-                    instance you use this script runs in another.
-    -i group,group  Which IAM groups have access to this instance
-                    Comma seperated list of IAM groups. Leave empty for all available IAM users
-    -l group,group  Give the users these local UNIX groups
-                    Comma seperated list
-    -s group        Specify an IAM group for users who should be given sudo privileges, or leave
-                    empty to not change sudo access, or give it the value '##ALL##' to have all
-                    users be given sudo rights.
-    -p program      Specify your useradd program to use
-    -u "args"       Specify arguments to use with useradd.
+    -a arn             Assume a role before contacting AWS IAM to get users and keys.
+                       This can be used if you define your users in one AWS account, while the EC2
+                       instance you use this script runs in another.
+    -i group,group     Which IAM groups have access to this instance
+                       Comma seperated list of IAM groups. Leave empty for all available IAM users
+    -l group,group     Give the users these local UNIX groups
+                       Comma seperated list
+    -s group           Specify an IAM group for users who should be given sudo privileges, or leave
+                       empty to not change sudo access, or give it the value '##ALL##' to have all
+                       users be given sudo rights.
+    -p program         Specify your useradd program to use.
+                       Defaults to '/usr/sbin/useradd'
+    -u "useradd args"  Specify arguments to use with useradd.
+                       Defaults to '--create-home --shell /bin/bash'
 
 
 EOF
