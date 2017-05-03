@@ -1,6 +1,6 @@
 %define name aws-ec2-ssh
 %define version %{jenkins_version}
-%define release 1%{?dist}
+%define release %{jenkins_release}%{?dist}
 
 
 Name:       %{name}
