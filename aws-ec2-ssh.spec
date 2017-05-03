@@ -34,7 +34,6 @@ Use your IAM user's public SSH key to get access via SSH to an EC2 instance.
 %install
 rm -rf ${RPM_BUILD_ROOT}
 mkdir -p ${RPM_BUILD_ROOT}%{_bindir}
-mkdir -p ${RPM_BUILD_ROOT}/etc/sysconfig
 install -m 755 import_users.sh ${RPM_BUILD_ROOT}%{_bindir}
 install -m 755 authorized_keys_command.sh ${RPM_BUILD_ROOT}%{_bindir}
 install -m 755 aws-ec2-ssh.conf ${RPM_BUILD_ROOT}/etc/aws-ec2-ssh.conf
