@@ -36,18 +36,23 @@ rm -rf ${RPM_BUILD_ROOT}
 mkdir -p ${RPM_BUILD_ROOT}%{_bindir}
 install -m 755 import_users.sh ${RPM_BUILD_ROOT}%{_bindir}
 install -m 755 authorized_keys_command.sh ${RPM_BUILD_ROOT}%{_bindir}
-install -m 755 aws-ec2-ssh.conf ${RPM_BUILD_ROOT}/etc/aws-ec2-ssh.conf
+install -m 755 aws-ec2-ssh.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/aws-ec2-ssh.conf
+echo "*/10 * * * * root /usr/bin/import_users.sh" > ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
+chmod 0644 ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
 
 %post
 sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh:g' /etc/ssh/sshd_config
 sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
 /etc/init.d/sshd restart
+/sbin/service crond condrestart 2>&1 > /dev/null || :
+/usr/bin/import_users.sh
 
 
 %postun
 sed -i 's:AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh:#AuthorizedKeysCommand none:g' /etc/ssh/sshd_config
 sed -i 's:AuthorizedKeysCommandUser nobody:#AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
 /etc/init.d/sshd restart
+/sbin/service crond condrestart 2>&1 > /dev/null || :
 
 
 %clean
@@ -58,10 +63,14 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(-,root,root)
 %attr(755,root,root) %{_bindir}/import_users.sh
 %attr(755,root,root) %{_bindir}/authorized_keys_command.sh
-%config /etc/aws-ec2-ssh.conf
+%config %{_sysconfdir}/aws-ec2-ssh.conf
+%config %{_sysconfdir}/cron.d/import_users
 
 
 %changelog
+
+* Wed May 3 2017 Michiel van Baak <michiel@vanbaak.eu> - 1.1.0-2
+- Create cron.d file and run import_users on install
 
 * Thu Apr 27 2017 Michiel van Baak <michiel@vanbaak.eu> - post-1.0-master
 - use correct versioning based on fedora package versioning guide
