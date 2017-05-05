@@ -38,6 +38,7 @@ mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d
 install -m 755 import_users.sh ${RPM_BUILD_ROOT}%{_bindir}
 install -m 755 authorized_keys_command.sh ${RPM_BUILD_ROOT}%{_bindir}
 install -m 755 aws-ec2-ssh.conf ${RPM_BUILD_ROOT}%{_sysconfdir}/aws-ec2-ssh.conf
+sed -i '/DONOTSYNC=0/DONOTSYNC=1/' ${RPM_BUILD_ROOT}%{_sysconfdir}/aws-ec2-ssh.conf
 echo "*/10 * * * * root /usr/bin/import_users.sh" > ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
 chmod 0644 ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
 
@@ -46,7 +47,8 @@ sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /usr/bin/authorized_
 sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
 /etc/init.d/sshd restart
 /sbin/service crond condrestart 2>&1 > /dev/null || :
-/usr/bin/import_users.sh
+
+echo "To configure the aws-ec2-ssh package, edit /etc/aws-ec-ssh.conf. No users will be synchronized before you did this."
 
 
 %postun
