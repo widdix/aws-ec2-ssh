@@ -50,12 +50,7 @@ A picture is worth a thousand words:
 2. Attach the IAM permissions defined in `iam_ssh_policy.json` to the EC2 instances (by creating an IAM role and an Instance Profile)
 3. Install the RPM: `rpm -i ttps://s3-eu-west-1.amazonaws.com/widdix-aws-ec2-ssh-releases-eu-west-1/aws-ec2-ssh-1.1.0-1.el7.centos.noarch.rpm`
 4. The configuration file is placed into `/etc/aws-ec2-ssh.conf`
-5. Install a cronjob to sync the IAM users
-```
-echo "*/10 * * * * root /usr/bin/import_users.sh" > /etc/cron.d/import_users
-chmod 0644 /etc/cron.d/import_users
-/usr/bin/import_users.sh
-```
+5. The RPM creates a crontab file to run import_users.sh every 10 minutes. This file is placed in `/etc/cron.d/import_users`
 
 ### Install via install.sh script
 
