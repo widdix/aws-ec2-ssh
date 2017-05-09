@@ -37,7 +37,7 @@ mkdir -p ${RPM_BUILD_ROOT}%{_bindir}
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d
 install -m 755 import_users.sh ${RPM_BUILD_ROOT}%{_bindir}
 install -m 755 authorized_keys_command.sh ${RPM_BUILD_ROOT}%{_bindir}
-install -m 755 aws-ec2-ssh.conf ${RPM_BUILD_ROOT}%{_sysconfdir}/aws-ec2-ssh.conf
+install -m 644 aws-ec2-ssh.conf ${RPM_BUILD_ROOT}%{_sysconfdir}/aws-ec2-ssh.conf
 sed -i '/DONOTSYNC=0/DONOTSYNC=1/' ${RPM_BUILD_ROOT}%{_sysconfdir}/aws-ec2-ssh.conf
 echo "*/10 * * * * root /usr/bin/import_users.sh" > ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
 chmod 0644 ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
