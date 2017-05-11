@@ -76,6 +76,15 @@ function get_iam_users() {
     fi
 }
 
+# Run all found iam users through clean_iam_username
+function get_clean_iam_users() {
+    local raw_username
+
+    for raw_username in $(get_iam_users); do
+        clean_iam_username "${raw_username}" | sed "s/\r//g"
+    done
+}
+
 # Get previously synced users
 function get_local_users() {
     /usr/bin/getent group ${LOCAL_MARKER_GROUP} \
@@ -83,6 +92,7 @@ function get_local_users() {
         | sed "s/,/ /g"
 }
 
+# Get IAM users of the group marked with sudo access
 function get_sudoers_users() {
     [[ -z "${SUDOERSGROUP}" ]] || [[ "${SUDOERSGROUP}" == "##ALL##" ]] ||
         aws iam get-group \
@@ -91,16 +101,23 @@ function get_sudoers_users() {
             --output text
 }
 
+# Get the unix usernames of the IAM users within the sudo group
+function get_clean_sudoers_users() {
+    local raw_username
+
+    for raw_username in $(get_sudoers_users); do
+        clean_iam_username "${raw_username}"
+    done
+}
+
 # Create or update a local user based on info from the IAM group
 function create_or_update_local_user() {
-    local iamusername
     local username
     local sudousers
     local localusergroups
 
-    iamusername="${1}"
-    username="${2}"
-    sudousers="${3}"
+    username="${1}"
+    sudousers="${2}"
     localusergroups="${LOCAL_MARKER_GROUP}"
 
     # check that username contains only alphanumeric, period (.), underscore (_), and hyphen (-) for a safe eval
@@ -125,9 +142,9 @@ function create_or_update_local_user() {
     then
         SaveUserFileName=$(echo "${username}" | tr "." " ")
         SaveUserSudoFilePath="/etc/sudoers.d/$SaveUserFileName"
-        if [[ "${SUDOERSGROUP}" == "##ALL##" ]] || echo "${sudousers}" | grep "^${iamusername}\$" > /dev/null
+        if [[ "${SUDOERSGROUP}" == "##ALL##" ]] || echo "${sudousers}" | grep "^${username}\$" > /dev/null
         then
-            echo "${SaveUserName} ALL=(ALL) NOPASSWD:ALL" > "${SaveUserSudoFilePath}"
+            echo "${username} ALL=(ALL) NOPASSWD:ALL" > "${SaveUserSudoFilePath}"
         else
             [[ ! -f "${SaveUserSudoFilePath}" ]] || rm "${SaveUserSudoFilePath}"
         fi
@@ -170,8 +187,8 @@ function sync_accounts() {
     local removed_users
     local user
 
-    iam_users=$(get_iam_users | sort | uniq)
-    sudo_users=$(get_sudoers_users | sort | uniq)
+    iam_users=$(get_clean_iam_users | sort | uniq)
+    sudo_users=$(get_clean_sudoers_users | sort | uniq)
     local_users=$(get_local_users | sort | uniq)
 
     intersection=$(echo ${local_users} ${iam_users} | tr " " "\n" | sort | uniq -D | uniq)
@@ -179,12 +196,11 @@ function sync_accounts() {
 
     # Add or update the users found in IAM
     for user in ${iam_users}; do
-        SaveUserName=$(clean_iam_username "${user}")
-        if [ "${#SaveUserName}" -le "32" ]
+        if [ "${#user}" -le "32" ]
         then
-            create_or_update_local_user "${user}" "${SaveUserName}" "$sudo_users"
+            create_or_update_local_user "${user}" "$sudo_users"
         else
-            echo "Can not import IAM user ${user}. Local user name ${SaveUserName} is longer than 32 characters."
+            echo "Can not import IAM user ${user}. User name is longer than 32 characters."
         fi
     done
 
