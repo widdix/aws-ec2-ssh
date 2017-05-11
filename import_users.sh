@@ -3,6 +3,15 @@
 # source configuration if it exists
 [ -f /etc/aws-ec2-ssh.conf ] && . /etc/aws-ec2-ssh.conf
 
+# Should we actually do something?
+: ${DONOTSYNC:=0}
+
+if [ ${DONOTSYNC} -eq 1 ]
+then
+    echo "Please configure aws-ec2-ssh by editing /etc/aws-ec2-ssh.conf"
+    exit 1
+fi
+
 # Which IAM groups have access to this instance
 # Comma seperated list of IAM groups. Leave empty for all available IAM users
 : ${IAM_AUTHORIZED_GROUPS:=""}
