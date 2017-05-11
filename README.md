@@ -100,7 +100,7 @@ USERADD_PROGRAM="/usr/sbin/useradd"            # The useradd program to use. def
 USERADD_ARGS="--create-home --shell /bin/bash" # Arguments for the useradd program. defaults to `--create-home --shell /bin/bash`
 ```
 
-The LOCAL_MARKER_GROUP will be created if it does not exist. BEWARE: Dont add any manually created users
+The LOCAL_MARKER_GROUP will be created if it does not exist. BEWARE: DO NOT add any manually created users
 to this group as they will be deleted in the next sync. This group is used by aws-ec2-ssh to keep track
 of what users were imported in the last run.
 
