@@ -135,7 +135,7 @@ function create_or_update_local_user() {
     id "${username}" >/dev/null 2>&1 \
         || ${USERADD_PROGRAM} ${USERADD_ARGS} "${username}" \
         && /bin/chown -R "${username}:${username}" "$(eval echo ~$username)"
-    /usr/sbin/usermod -G "${localusergroups}" "${username}"
+    /usr/sbin/usermod -a -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
     if [[ ! -z "${SUDOERSGROUP}" ]]
