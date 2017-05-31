@@ -2,7 +2,7 @@
 %define version %{jenkins_version}
 %define release %{jenkins_release}%{?dist}
 %define archive %{jenkins_archive}
-%define suffix %{jenkins_suffix}
+%define archivedir aws-ec2-ssh-%{jenkins_suffix}
 
 Name:       %{name}
 Summary:    Manage AWS EC2 SSH access with IAM
@@ -24,7 +24,7 @@ Use your IAM user's public SSH key to get access via SSH to an EC2 instance.
 
 
 %prep
-%setup -q -n %{name}-%{suffix}
+%setup -q -n %{archivedir}
 
 
 %build
