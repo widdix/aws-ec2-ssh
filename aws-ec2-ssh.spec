@@ -2,6 +2,7 @@
 %define version %{jenkins_version}
 %define release %{jenkins_release}%{?dist}
 %define archive %{jenkins_archive}
+%define suffix %{jenkins_suffix}
 
 Name:       %{name}
 Summary:    Manage AWS EC2 SSH access with IAM
@@ -12,9 +13,7 @@ Group:      System/Administration
 License:    MIT
 URL:        https://cloudonaut.io/manage-aws-ec2-ssh-access-with-iam/
 Source0:    https://github.com/widdix/aws-ec2-ssh/archive/%{archive}.tar.gz
-BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch:  noarch
-BuildRoot:  %{_tmppath}/%{name}-root}
 Vendor:     widdix GmbH
 Packager:   Michiel van Baak
 
@@ -25,7 +24,7 @@ Use your IAM user's public SSH key to get access via SSH to an EC2 instance.
 
 
 %prep
-%setup -q
+%setup -q -n %{name}-${suffix}
 
 
 %build
