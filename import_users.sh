@@ -170,7 +170,7 @@ function clean_iam_username() {
     clean_username=${clean_username//"="/".equal."}
     clean_username=${clean_username//","/".comma."}
     clean_username=${clean_username//"@"/".at."}
-    echo "${clean_username}"
+    echo "${clean_username:0:32}"
 }
 
 function sync_accounts() {
