@@ -148,7 +148,7 @@ function create_or_update_local_user() {
     /usr/sbin/usermod -a -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
-    if [[ ! -z "${SUDOERSG_ROUPS}" ]]
+    if [[ ! -z "${SUDOERS_GROUPS}" ]]
     then
         SaveUserFileName=$(echo "${username}" | tr "." " ")
         SaveUserSudoFilePath="/etc/sudoers.d/$SaveUserFileName"
