@@ -38,6 +38,10 @@ fi
 # Possibility to provide custom useradd arguments
 : ${USERADD_ARGS:="--create-home --shell /bin/bash"}
 
+function log() {
+    /usr/bin/logger -i -p auth.info -t aws-ec2-ssh "$@"
+}
+
 function setup_aws_credentials() {
     local stscredentials
     if [[ ! -z "${ASSUMEROLE}" ]]
@@ -132,9 +136,11 @@ function create_or_update_local_user() {
         localusergroups="${LOCAL_GROUPS},${LOCAL_MARKER_GROUP}"
     fi
 
-    id "${username}" >/dev/null 2>&1 \
-        || ${USERADD_PROGRAM} ${USERADD_ARGS} "${username}" \
-        && /bin/chown -R "${username}:${username}" "$(eval echo ~$username)"
+    if ! id "${username}" >/dev/null 2>&1; then
+        ${USERADD_PROGRAM} ${USERADD_ARGS} "${username}"
+        /bin/chown -R "${username}:${username}" "$(eval echo ~$username)"
+        log "Created new user ${username}"
+    fi
     /usr/sbin/usermod -a -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
@@ -162,6 +168,7 @@ function delete_local_user() {
     sleep 1
     # Remove account now that all processes for the user are gone
     /usr/sbin/userdel -f -r "${1}"
+    log "Deleted user ${1}"
 }
 
 function clean_iam_username() {
