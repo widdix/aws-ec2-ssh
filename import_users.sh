@@ -25,7 +25,13 @@ fi
 # Specify an IAM group for users who should be given sudo privileges, or leave
 # empty to not change sudo access, or give it the value '##ALL##' to have all
 # users be given sudo rights.
+# DEPRECATED! Use SUDOERS_GROUPS
 : ${SUDOERSGROUP:=""}
+
+# Specify a comma seperated list of IAM groups for users who should be given sudo privileges.
+# Leave empty to not change sudo access, or give the value '##ALL## to have all users
+# be given sudo rights.
+: ${SUDOERS_GROUPS:="${SUDOERSGROUP}"}
 
 # Assume a role before contacting AWS IAM to get users and keys.
 # This can be used if you define your users in one AWS account, while the EC2
@@ -92,13 +98,17 @@ function get_local_users() {
         | sed "s/,/ /g"
 }
 
-# Get IAM users of the group marked with sudo access
+# Get IAM users of the groups marked with sudo access
 function get_sudoers_users() {
-    [[ -z "${SUDOERSGROUP}" ]] || [[ "${SUDOERSGROUP}" == "##ALL##" ]] ||
-        aws iam get-group \
-            --group-name "${SUDOERSGROUP}" \
-            --query "Users[].[UserName]" \
-            --output text
+    local group
+
+    [[ -z "${SUDOERS_GROUPS}" ]] || [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] ||
+        for group in $(echo "${SUDOERS_GROUPS}" | tr "," " "); do
+            aws iam get-group \
+                --group-name "${SUDOERS_GROUPS}" \
+                --query "Users[].[UserName]" \
+                --output text
+        done
 }
 
 # Get the unix usernames of the IAM users within the sudo group
@@ -138,11 +148,11 @@ function create_or_update_local_user() {
     /usr/sbin/usermod -a -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
-    if [[ ! -z "${SUDOERSGROUP}" ]]
+    if [[ ! -z "${SUDOERSG_ROUPS}" ]]
     then
         SaveUserFileName=$(echo "${username}" | tr "." " ")
         SaveUserSudoFilePath="/etc/sudoers.d/$SaveUserFileName"
-        if [[ "${SUDOERSGROUP}" == "##ALL##" ]] || echo "${sudousers}" | grep "^${username}\$" > /dev/null
+        if [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] || echo "${sudousers}" | grep "^${username}\$" > /dev/null
         then
             echo "${username} ALL=(ALL) NOPASSWD:ALL" > "${SaveUserSudoFilePath}"
         else

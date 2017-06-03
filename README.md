@@ -93,7 +93,8 @@ one or more of the following lines:
 ```
 ASSUMEROLE="IAM-role-arn"                      # IAM Role ARN for multi account. See below for more info
 IAM_AUTHORIZED_GROUPS="GROUPNAMES"             # Comma seperated list of IAM groups to import
-SUDOERSGROUP="GROUPNAME"                       # IAM group that should have sudo access
+SUDOERS_GROUPS="GROUPNAMES"                    # Comma seperated list of IAM groups that should have sudo access
+SUDOERSGROUP="GROUPNAME"                       # Deprecated! IAM group that should have sudo access. Please use SUDOERS_GROUPS as this variable will be removed in future release.
 LOCAL_MARKER_GROUP="iam-synced-users"          # Dedicated UNIX group to mark imported users. Used for deleting removed IAM users
 LOCAL_GROUPS="GROUPNAMES"                      # Comma seperated list of UNIX groups to add the users in
 USERADD_PROGRAM="/usr/sbin/useradd"            # The useradd program to use. defaults to `/usr/sbin/useradd`
