@@ -105,7 +105,7 @@ function get_sudoers_users() {
     [[ -z "${SUDOERS_GROUPS}" ]] || [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] ||
         for group in $(echo "${SUDOERS_GROUPS}" | tr "," " "); do
             aws iam get-group \
-                --group-name "${SUDOERS_GROUPS}" \
+                --group-name "${group}" \
                 --query "Users[].[UserName]" \
                 --output text
         done
