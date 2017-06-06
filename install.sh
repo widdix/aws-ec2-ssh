@@ -15,9 +15,10 @@ Install import_users.sh and authorized_key_commands.
                        Comma seperated list of IAM groups. Leave empty for all available IAM users
     -l group,group     Give the users these local UNIX groups
                        Comma seperated list
-    -s group           Specify an IAM group for users who should be given sudo privileges, or leave
+    -s group,group     Specify IAM group(s) for users who should be given sudo privileges, or leave
                        empty to not change sudo access, or give it the value '##ALL##' to have all
                        users be given sudo rights.
+                       Comma seperated list
     -p program         Specify your useradd program to use.
                        Defaults to '/usr/sbin/useradd'
     -u "useradd args"  Specify arguments to use with useradd.
@@ -28,7 +29,7 @@ EOF
 }
 
 IAM_GROUPS=""
-SUDO_GROUP=""
+SUDO_GROUPS=""
 LOCAL_GROUPS=""
 ASSUME_ROLE=""
 USERADD_PROGRAM=""
@@ -45,7 +46,7 @@ do
             IAM_GROUPS="$OPTARG"
             ;;
         s)
-            SUDO_GROUP="$OPTARG"
+            SUDO_GROUPS="$OPTARG"
             ;;
         l)
             LOCAL_GROUPS="$OPTARG"
@@ -85,35 +86,21 @@ cd "$tmpdir/aws-ec2-ssh"
 cp authorized_keys_command.sh /opt/authorized_keys_command.sh
 cp import_users.sh /opt/import_users.sh
 
-# To control which users are imported/synced, uncomment the line below
-# changing GROUPNAMES to a comma seperated list of IAM groups you want to sync.
-# You can specify 1 or more groups, comma seperated, without spaces.
-# If you leave it blank, all IAM users will be synced.
 if [ "${IAM_GROUPS}" != "" ]
 then
     echo "IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
-# To control which users are given sudo privileges, uncomment the line below
-# changing GROUPNAME to either the name of the IAM group for sudo users, or
-# to ##ALL## to give all users sudo access. If you leave it blank, no users will
-# be given sudo access.
-if [ "${SUDO_GROUP}" != "" ]
+if [ "${SUDO_GROUPS}" != "" ]
 then
-    echo "SUDOERSGROUP=\"${SUDO_GROUP}\"" >> /etc/aws-ec2-ssh.conf
+    echo "SUDOERS_GROUPS=\"${SUDO_GROUPS}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
-# To control which local groups a user will get, uncomment the line belong
-# changing GROUPNAMES to a comma seperated list of local UNIX groups.
-# If you live it blank, this setting will be ignored
 if [ "${LOCAL_GROUPS}" != "" ]
 then
     echo "LOCAL_GROUPS=\"${LOCAL_GROUPS}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
-# If your IAM users are in another AWS account, put the AssumeRole ARN here.
-# replace the word ASSUMEROLEARN with the full arn. eg 'arn:aws:iam::$accountid:role/$role'
-# See docs/multiawsaccount.md on how to make this work
 if [ "${ASSUME_ROLE}" != "" ]
 then
     echo "ASSUMEROLE=\"${ASSUME_ROLE}\"" >> /etc/aws-ec2-ssh.conf
