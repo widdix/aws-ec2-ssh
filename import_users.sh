@@ -169,12 +169,12 @@ function create_or_update_local_user() {
 
 function delete_local_user() {
     # First, make sure no new sessions can be started
-    /usr/sbin/usermod -L -s /sbin/nologin "${1}"
+    /usr/sbin/usermod -L -s /sbin/nologin "${1}" || true
     # ask nicely and give them some time to shutdown
-    /usr/bin/pkill -15 -u "${1}"
+    /usr/bin/pkill -15 -u "${1}" || true
     sleep 5
     # Dont want to close nicely? DIE!
-    /usr/bin/pkill -9 -u "${1}"
+    /usr/bin/pkill -9 -u "${1}" || true
     sleep 1
     # Remove account now that all processes for the user are gone
     /usr/sbin/userdel -f -r "${1}"
