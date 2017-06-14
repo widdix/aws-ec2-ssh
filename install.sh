@@ -115,10 +115,15 @@ if [ "${USERADD_ARGS}" != "" ]
 then
     echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> /etc/aws-ec2-ssh.conf
 fi
-
-sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
-sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
-
+condition=$(grep -i AuthorizedKeysCommand /etc/ssh/sshd_config | wc -l)
+if [ $condition -gt 0 ]
+then
+    sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
+    sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
+else
+    echo "AuthorizedKeysCommand /opt/authorized_keys_command.sh" >> /etc/ssh/sshd_config
+    echo "AuthorizedKeysCommandUser nobody" >> /etc/ssh/sshd_config
+fi
 echo "*/10 * * * * root /opt/import_users.sh" > /etc/cron.d/import_users
 chmod 0644 /etc/cron.d/import_users
 
