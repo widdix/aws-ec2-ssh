@@ -22,6 +22,16 @@
       "Resource": [
         "arn:aws:iam::<YOUR_USERS_ACCOUNT_ID_HERE>:user/*"
       ]
+    },
+    {
+        "Sid": "Stmt1500475854000",
+        "Effect": "Allow",
+        "Action": [
+            "ec2:DescribeTags"
+        ],
+        "Resource": [
+            "*"
+        ]
     }
   ]
 }
