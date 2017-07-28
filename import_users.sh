@@ -44,6 +44,11 @@ fi
 # Possibility to provide custom useradd arguments
 : ${USERADD_ARGS:="--create-home --shell /bin/bash"}
 
+# Initizalize INSTANCE and REGION variables
+INSTANCE_ID=$(curl -s http://instance-data//latest/meta-data/instance-id)
+REGION=$(curl -s http://instance-data//latest/dynamic/instance-identity/document | jq -r .region)
+
+
 function log() {
     /usr/bin/logger -i -p auth.info -t aws-ec2-ssh "$@"
 }
@@ -63,6 +68,20 @@ function setup_aws_credentials() {
         AWS_SESSION_TOKEN=$(echo "${stscredentials}" | awk '{print $1}')
         AWS_SECURITY_TOKEN=$(echo "${stscredentials}" | awk '{print $1}')
         export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
+    fi
+}
+
+# Get list of iam groups from tag
+function get_iam_groups_from_tag() {
+    if [ "${IAM_AUTHORIZED_GROUPS_TAG}" ]
+    then
+        IAM_AUTHORIZED_GROUPS=$(\
+            aws ec2 describe-tags \
+            --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$IAM_AUTHORIZED_GROUPS_TAG" \
+            --region=$REGION \
+            --output=json \
+            | jq -r .Tags[0].Value \
+        )
     fi
 }
 
@@ -100,6 +119,20 @@ function get_local_users() {
     /usr/bin/getent group ${LOCAL_MARKER_GROUP} \
         | cut -d : -f4- \
         | sed "s/,/ /g"
+}
+
+# Get list of IAM groups marked with sudo access from tag
+function get_sudoers_groups_from_tag() {
+    if [ "${SUDOERS_GROUPS_TAG}" ]
+    then
+        SUDOERS_GROUPS=$(\
+            aws ec2 describe-tags \
+            --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$SUDOERS_GROUPS_TAG" \
+            --region=$REGION \
+            --output=json \
+            | jq -r .Tags[0].Value \
+        )
+    fi
 }
 
 # Get IAM users of the groups marked with sudo access
@@ -210,6 +243,10 @@ function sync_accounts() {
     local intersection
     local removed_users
     local user
+
+    # init group and sudoers from tags
+    get_iam_groups_from_tag
+    get_sudoers_groups_from_tag
 
     iam_users=$(get_clean_iam_users | sort | uniq)
     sudo_users=$(get_clean_sudoers_users | sort | uniq)

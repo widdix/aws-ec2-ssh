@@ -62,7 +62,8 @@ A picture is worth a thousand words:
    5. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
 2. Attach the IAM permissions defined in `iam_ssh_policy.json` to the EC2 instances (by creating an IAM role and an Instance Profile)
 3. Run the `install.sh` script as `root` on the EC2 instances. Run `install.sh -h` for help.
-4. Connect to your EC2 instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address
+4. The configuration file is placed into `/etc/aws-ec2-ssh.conf`
+5. Connect to your EC2 instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address
 
 ## IAM user names and Linux user names
 
@@ -92,8 +93,10 @@ one or more of the following lines:
 
 ```
 ASSUMEROLE="IAM-role-arn"                      # IAM Role ARN for multi account. See below for more info
-IAM_AUTHORIZED_GROUPS="GROUPNAMES"             # Comma seperated list of IAM groups to import
+IAM_AUTHORIZED_GROUPS="GROUPNAMES"             # Comma separated list of IAM groups to import
 SUDOERS_GROUPS="GROUPNAMES"                    # Comma seperated list of IAM groups that should have sudo access
+IAM_AUTHORIZED_GROUPS_TAG="KeyTag"             # Key Tag of EC2 that contains a Comma separated list of IAM groups to import - IAM_AUTHORIZED_GROUPS_TAG will override IAM_AUTHORIZED_GROUPS, you can use only one of them 
+SUDOERS_GROUPS_TAG="KeyTag"                    # Key Tag of EC2 that contains a Comma separated list of IAM groups that should have sudo access - SUDOERS_GROUPS_TAG will override SUDOERS_GROUPS, you can use only one of them
 SUDOERSGROUP="GROUPNAME"                       # Deprecated! IAM group that should have sudo access. Please use SUDOERS_GROUPS as this variable will be removed in future release.
 LOCAL_MARKER_GROUP="iam-synced-users"          # Dedicated UNIX group to mark imported users. Used for deleting removed IAM users
 LOCAL_GROUPS="GROUPNAMES"                      # Comma seperated list of UNIX groups to add the users in
