@@ -37,6 +37,21 @@ A picture is worth a thousand words:
 
 ## How to integrate this system into your environment
 
+### Install via RPM
+
+> Check the [releases](https://github.com/widdix/aws-ec2-ssh/releases) and replace `1.1.0` with the latest released version.
+
+1. Upload your public SSH key to IAM: 
+   1. Open the Users section in the [IAM Management Console](https://console.aws.amazon.com/iam/home#users)
+   2. Click the row with your user
+   3. Select the **Security Credentials** tab
+   4. Click the **Upload SSH public key** button at the bottom of the page
+   5. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
+2. Attach the IAM permissions defined in `iam_ssh_policy.json` to the EC2 instances (by creating an IAM role and an Instance Profile)
+3. Install the RPM: `rpm -i https://s3-eu-west-1.amazonaws.com/widdix-aws-ec2-ssh-releases-eu-west-1/aws-ec2-ssh-1.1.0-1.el7.centos.noarch.rpm`
+4. The configuration file is placed into `/etc/aws-ec2-ssh.conf`
+5. The RPM creates a crontab file to run import_users.sh every 10 minutes. This file is placed in `/etc/cron.d/import_users`
+
 ### Install via install.sh script
 
 1. Upload your public SSH key to IAM: 
