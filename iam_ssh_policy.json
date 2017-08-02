@@ -1,37 +1,24 @@
 {
   "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "Stmt1471562879000",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "iam:ListUsers",
+      "iam:GetGroup"
+    ],
+    "Resource": "*"
+  }, {
+    "Effect": "Allow",
+    "Action": [
+      "iam:GetSSHPublicKey",
+      "iam:ListSSHPublicKeys"
+    ],
+    "Resource": [
+      "arn:aws:iam::<YOUR_USERS_ACCOUNT_ID_HERE>:user/*"
+    ]
+  }, {
       "Effect": "Allow",
-      "Action": [
-        "iam:ListUsers",
-        "iam:GetGroup"
-      ],
-      "Resource": [
-        "*"
-      ]
-    },
-    {
-      "Sid": "Stmt1471562943000",
-      "Effect": "Allow",
-      "Action": [
-        "iam:GetSSHPublicKey",
-        "iam:ListSSHPublicKeys"
-      ],
-      "Resource": [
-        "arn:aws:iam::<YOUR_USERS_ACCOUNT_ID_HERE>:user/*"
-      ]
-    },
-    {
-        "Sid": "Stmt1500475854000",
-        "Effect": "Allow",
-        "Action": [
-            "ec2:DescribeTags"
-        ],
-        "Resource": [
-            "*"
-        ]
-    }
-  ]
+      "Action": "ec2:DescribeTags",
+      "Resource": "*"
+  }]
 }
