@@ -119,7 +119,13 @@ fi
 sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
 sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
 
-echo "*/10 * * * * root /opt/import_users.sh" > /etc/cron.d/import_users
+cat > /etc/cron.d/import_users << EOF
+SHELL=/bin/bash
+PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/aws/bin
+MAILTO=root
+HOME=/
+*/10 * * * * root /opt/import_users.sh
+EOF
 chmod 0644 /etc/cron.d/import_users
 
 /opt/import_users.sh
