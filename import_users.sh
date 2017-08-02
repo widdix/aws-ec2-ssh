@@ -44,10 +44,8 @@ fi
 # Possibility to provide custom useradd arguments
 : ${USERADD_ARGS:="--create-home --shell /bin/bash"}
 
-# Initizalize INSTANCE and REGION variables
+# Initizalize INSTANCE variable
 INSTANCE_ID=$(curl -s http://instance-data//latest/meta-data/instance-id)
-REGION=$(curl -s http://instance-data//latest/dynamic/instance-identity/document | jq -r .region)
-
 
 function log() {
     /usr/bin/logger -i -p auth.info -t aws-ec2-ssh "$@"
@@ -78,9 +76,8 @@ function get_iam_groups_from_tag() {
         IAM_AUTHORIZED_GROUPS=$(\
             aws ec2 describe-tags \
             --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$IAM_AUTHORIZED_GROUPS_TAG" \
-            --region=$REGION \
-            --output=json \
-            | jq -r .Tags[0].Value \
+            --query "Tags[0].Value" \
+            --output text \
         )
     fi
 }
@@ -128,9 +125,8 @@ function get_sudoers_groups_from_tag() {
         SUDOERS_GROUPS=$(\
             aws ec2 describe-tags \
             --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$SUDOERS_GROUPS_TAG" \
-            --region=$REGION \
-            --output=json \
-            | jq -r .Tags[0].Value \
+            --query "Tags[0].Value" \
+            --output text \
         )
     fi
 }
