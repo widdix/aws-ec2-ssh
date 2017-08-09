@@ -9,7 +9,7 @@ A picture is worth a thousand words:
 ![Architecture](./docs/architecture.png?raw=true "Architecture")
 
 * On first start, all IAM users are imported and local UNIX users are created
-* The import also runs every 10 minutes (via cron - calls `import_users.sh`)
+* The import also runs every 10 minutes (via cron - calls [`import_users.sh`](./import_users.sh))
 * You can control which IAM users get a local UNIX user and are therefore able to login
    * all (default)
    * only those in specific IAM groups
@@ -47,7 +47,7 @@ A picture is worth a thousand words:
    3. Select the **Security Credentials** tab
    4. Click the **Upload SSH public key** button at the bottom of the page
    5. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
-2. Attach the IAM permissions defined in `iam_ssh_policy.json` to the EC2 instances (by creating an IAM role and an Instance Profile)
+2. Attach the IAM permissions defined in [`iam_ssh_policy.json`](./iam_ssh_policy.json) to the EC2 instances (by creating an IAM role and an Instance Profile)
 3. Install the RPM: `rpm -i https://s3-eu-west-1.amazonaws.com/widdix-aws-ec2-ssh-releases-eu-west-1/aws-ec2-ssh-1.1.0-1.el7.centos.noarch.rpm`
 4. The configuration file is placed into `/etc/aws-ec2-ssh.conf`
 5. The RPM creates a crontab file to run import_users.sh every 10 minutes. This file is placed in `/etc/cron.d/import_users`
@@ -60,7 +60,7 @@ A picture is worth a thousand words:
    3. Select the **Security Credentials** tab
    4. Click the **Upload SSH public key** button at the bottom of the page
    5. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
-2. Attach the IAM permissions defined in `iam_ssh_policy.json` to the EC2 instances (by creating an IAM role and an Instance Profile)
+2. Attach the IAM permissions defined in [`iam_ssh_policy.json`](./iam_ssh_policy.json) to the EC2 instances (by creating an IAM role and an Instance Profile)
 3. Run the `install.sh` script as `root` on the EC2 instances. Run `install.sh -h` for help.
 4. The configuration file is placed into `/etc/aws-ec2-ssh.conf`
 5. Connect to your EC2 instances now using `ssh $Username@$PublicName` with `$Username` being your IAM user, and `$PublicName` being your server's name or IP address
@@ -122,7 +122,7 @@ If you are using multiple AWS accounts you probably have one AWS account with al
 6. Select the newly created role
 7. In the **Permissions** tab, expand **Inline Policies** and create a new inline policy
 8. Select **Custom Policy**
-9. Paste the content of the `iam_ssh_policy.json` file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account**.
+9. Paste the content of the [`iam_ssh_policy.json`](./iam_ssh_policy.json) file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account**.
 
 ### Setup dev account
 
@@ -135,7 +135,7 @@ For your EC2 instances, you need a IAM role that allows the `sts:AssumeRole` act
 5. Select the newly created role
 6. In the **Permissions** tab, expand **Inline Policies** and create a new inline policy
 7. Select **Custom Policy**
-8. Paste the content of the `iam_crossaccount_policy.json` file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account** and `<YOUR_USERS_ACCOUNT_ROLE_NAME_HERE>` with the IAM rol name that you created in the **users account**
+8. Paste the content of the [`iam_crossaccount_policy.json`](./iam_crossaccount_policy.json) file and replace `<YOUR_USERS_ACCOUNT_ID_HERE>` with the AWS Account ID of the **users account** and `<YOUR_USERS_ACCOUNT_ROLE_NAME_HERE>` with the IAM rol name that you created in the **users account**
 9. Create/edit the file `/etc/aws-ec2-ssh.conf` and add this line: `ASSUMEROLE="IAM-ROLE-ARN` or run the install.sh script with the -a argument
 
 ## Limitations
