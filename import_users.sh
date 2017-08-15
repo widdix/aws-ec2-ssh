@@ -45,7 +45,8 @@ fi
 : ${USERADD_ARGS:="--create-home --shell /bin/bash"}
 
 # Initizalize INSTANCE variable
-INSTANCE_ID=$(curl -s http://instance-data//latest/meta-data/instance-id)
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" '{print $4}')
 
 function log() {
     /usr/bin/logger -i -p auth.info -t aws-ec2-ssh "$@"
@@ -74,10 +75,9 @@ function get_iam_groups_from_tag() {
     if [ "${IAM_AUTHORIZED_GROUPS_TAG}" ]
     then
         IAM_AUTHORIZED_GROUPS=$(\
-            aws ec2 describe-tags \
+            aws --region $REGION ec2 describe-tags \
             --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$IAM_AUTHORIZED_GROUPS_TAG" \
-            --query "Tags[0].Value" \
-            --output text \
+            --query "Tags[0].Value" --output text \
         )
     fi
 }
@@ -123,10 +123,9 @@ function get_sudoers_groups_from_tag() {
     if [ "${SUDOERS_GROUPS_TAG}" ]
     then
         SUDOERS_GROUPS=$(\
-            aws ec2 describe-tags \
+            aws --region $REGION ec2 describe-tags \
             --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$SUDOERS_GROUPS_TAG" \
-            --query "Tags[0].Value" \
-            --output text \
+            --query "Tags[0].Value" --output text \
         )
     fi
 }
