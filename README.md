@@ -1,6 +1,6 @@
 # Manage AWS EC2 SSH access with IAM
 
-Use your IAM user's public SSH key to get access via SSH to an EC2 instance with **Amazon Linux**.
+Use your IAM user's public SSH key to get access via SSH to an EC2 instance running **Amazon Linux** or **Ubuntu**.
 
 ## How does it work
 
