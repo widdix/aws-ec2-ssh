@@ -28,6 +28,8 @@ Install import_users.sh and authorized_key_commands.
 EOF
 }
 
+SSH_CONFIG_FILE="/etc/ssh/sshd_config"
+
 IAM_GROUPS=""
 SUDO_GROUPS=""
 LOCAL_GROUPS=""
@@ -116,8 +118,15 @@ then
     echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> /etc/aws-ec2-ssh.conf
 fi
 
-sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
-sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
+if grep -q 'AuthorizedKeysCommand' $SSH_CONFIG_FILE; then
+  sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' $SSH_CONFIG_FILE
+else
+  sed -i '/AuthorizedKeysFile/a AuthorizedKeysCommand /opt/authorized_keys_command.sh' $SSH_CONFIG_FILE
+fi
+
+if ! grep -q 'AuthorizedKeysCommandUser' $SSH_CONFIG_FILE; then
+   sed -i '/AuthorizedKeysCommand/a AuthorizedKeysCommandUser nobody' $SSH_CONFIG_FILE
+fi
 
 cat > /etc/cron.d/import_users << EOF
 SHELL=/bin/bash
