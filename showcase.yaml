@@ -164,7 +164,7 @@ Resources:
               git: []
           files:
             '/opt/install.sh':
-              source: 'https://raw.githubusercontent.com/widdix/aws-ec2-ssh/master/install.sh'
+              source: 'https://github.com/widdix/aws-ec2-ssh/raw/ubuntu/install.sh'
               mode: '000755'
               owner: root
               group: root
