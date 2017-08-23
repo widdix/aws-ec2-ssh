@@ -1,8 +1,5 @@
 #!/bin/bash -e
 
-# Install script from the forked version:
-# https://github.com/maxgio92/aws-ec2-ssh
-
 show_help() {
 cat << EOF
 Usage: ${0##*/} [-hv] [-a ARN] [-i GROUP,GROUP,...] [-l GROUP,GROUP,...] [-s GROUP] [-p PROGRAM] [-u "ARGUMENTS"]
