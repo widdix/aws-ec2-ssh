@@ -49,7 +49,7 @@ get_os() {
     fi
 }
 
-SSH_CONFIG_FILE="/etc/ssh/sshd_config"
+SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
 AUTHORIZED_KEYS_COMMAND_FILE="/opt/authorized_keys_command.sh"
 IMPORT_USERS_SCRIPT_FILE="/opt/import_users.sh"
 MAIN_CONFIG_FILE="/etc/aws-ec2-ssh.conf"
@@ -155,16 +155,16 @@ then
     echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> $MAIN_CONFIG_FILE
 fi
 
-if grep -q 'AuthorizedKeysCommand' $SSH_CONFIG_FILE; then
-  sed -i "s:#AuthorizedKeysCommand none:AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}:g" $SSH_CONFIG_FILE
+if grep -q 'AuthorizedKeysCommand' $SSHD_CONFIG_FILE; then
+    sed -i "s:#AuthorizedKeysCommand none:AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}:g" $SSHD_CONFIG_FILE
 else
-  sed -i "/AuthorizedKeysFile/a AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}" $SSH_CONFIG_FILE
+    sed -i "/AuthorizedKeysFile/a AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}" $SSHD_CONFIG_FILE
 fi
 
-if grep -q '#AuthorizedKeysCommandUser' $SSH_CONFIG_FILE; then
-  sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" $SSH_CONFIG_FILE
-elif ! grep -q 'AuthorizedKeysCommandUser' $SSH_CONFIG_FILE; then
-  sed -i '/AuthorizedKeysCommand/a AuthorizedKeysCommandUser nobody' $SSH_CONFIG_FILE
+if grep -q '#AuthorizedKeysCommandUser' $SSHD_CONFIG_FILE; then
+    sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" $SSHD_CONFIG_FILE
+elif ! grep -q 'AuthorizedKeysCommandUser' $SSHD_CONFIG_FILE; then
+    sed -i '/AuthorizedKeysCommand/a AuthorizedKeysCommandUser nobody' $SSHD_CONFIG_FILE
 fi
 
 cat > /etc/cron.d/import_users << EOF
