@@ -161,8 +161,10 @@ else
   sed -i "/AuthorizedKeysFile/a AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}" $SSH_CONFIG_FILE
 fi
 
-if ! grep -q 'AuthorizedKeysCommandUser' $SSH_CONFIG_FILE; then
-   sed -i '/AuthorizedKeysCommand/a AuthorizedKeysCommandUser nobody' $SSH_CONFIG_FILE
+if grep -q '#AuthorizedKeysCommandUser' $SSH_CONFIG_FILE; then
+  sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" $SSH_CONFIG_FILE
+elif ! grep -q 'AuthorizedKeysCommandUser' $SSH_CONFIG_FILE; then
+  sed -i '/AuthorizedKeysCommand/a AuthorizedKeysCommandUser nobody' $SSH_CONFIG_FILE
 fi
 
 cat > /etc/cron.d/import_users << EOF
