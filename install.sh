@@ -152,16 +152,16 @@ then
     echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> $MAIN_CONFIG_FILE
 fi
 
-if grep -q 'AuthorizedKeysCommand' $SSHD_CONFIG_FILE; then
+if grep -q '#AuthorizedKeysCommand none' $SSHD_CONFIG_FILE; then
     sed -i "s:#AuthorizedKeysCommand none:AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}:g" $SSHD_CONFIG_FILE
 else
-    sed -i "/AuthorizedKeysFile/a AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}" $SSHD_CONFIG_FILE
+    echo "AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}" >> $SSHD_CONFIG_FILE
 fi
 
-if grep -q '#AuthorizedKeysCommandUser' $SSHD_CONFIG_FILE; then
+if grep -q '#AuthorizedKeysCommandUser nobody' $SSHD_CONFIG_FILE; then
     sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" $SSHD_CONFIG_FILE
-elif ! grep -q 'AuthorizedKeysCommandUser' $SSHD_CONFIG_FILE; then
-    sed -i '/AuthorizedKeysCommand/a AuthorizedKeysCommandUser nobody' $SSHD_CONFIG_FILE
+else
+    echo "AuthorizedKeysCommandUser nobody" >> $SSHD_CONFIG_FILE
 fi
 
 cat > /etc/cron.d/import_users << EOF
