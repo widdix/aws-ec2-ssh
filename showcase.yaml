@@ -160,10 +160,12 @@ Resources:
     Metadata:
       'AWS::CloudFormation::Init':
         config:
-          packages:
-            yum:
+          packages: !If
+          - UseUbuntu
+          - apt:
               git: []
-            apt:
+              awscli: []
+          - yum:
               git: []
           files:
             '/opt/install.sh':
@@ -175,11 +177,6 @@ Resources:
             a_install:
               command: !Sub './install.sh -a "${AssumeRole}"'
               cwd: '/opt'
-          services:
-            sysvinit:
-              sshd:
-                enabled: true
-                ensureRunning: true
     Properties:
       ImageId: !FindInMap [!FindInMap [OSMap, !Ref OS, RegionMap], !Ref 'AWS::Region', AMI]
       IamInstanceProfile: !Ref InstanceProfile

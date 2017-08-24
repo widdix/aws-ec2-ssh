@@ -28,24 +28,6 @@ Install import_users.sh and authorized_key_commands.
 EOF
 }
 
-get_os() {
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        OS=$NAME
-    elif type lsb_release >/dev/null 2>&1; then
-        OS=$(lsb_release -si)
-    elif [ -f /etc/lsb-release ]; then
-        . /etc/lsb-release
-        OS=$DISTRIB_ID
-    elif [ -f /etc/debian_version ]; then
-        OS='Debian'
-    elif [ -f /etc/redhat-release ]; then
-        OS='Red Hat'
-    else
-        OS=$(uname -s)
-    fi
-}
-
 SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
 AUTHORIZED_KEYS_COMMAND_FILE="/opt/authorized_keys_command.sh"
 IMPORT_USERS_SCRIPT_FILE="/opt/import_users.sh"
@@ -57,9 +39,6 @@ LOCAL_GROUPS=""
 ASSUME_ROLE=""
 USERADD_PROGRAM=""
 USERADD_ARGS=""
-
-DEBIAN_BASED_OS=('Debian GNU/Linux' 'Ubuntu')
-RHEL_BASED_OS=('Amazon Linux AMI' 'CentOS Linux' 'Red Hat Enterprise Linux Server')
 
 while getopts :hva:i:l:s: opt
 do
@@ -100,16 +79,6 @@ do
             exit 1
     esac
 done
-
-get_os
-
-if [[ " ${DEBIAN_BASED_OS[*]} " == *" ${OS} "* ]]; then
-    SSHD_SERVICE_NAME=ssh
-elif [[ " ${RHEL_BASED_OS[*]} " == *" ${OS} "* ]]; then
-    SSHD_SERVICE_NAME=sshd
-else
-    SSHD_SERVICE_NAME=sshd
-fi
 
 tmpdir=$(mktemp -d)
 
@@ -175,4 +144,8 @@ chmod 0644 /etc/cron.d/import_users
 
 $IMPORT_USERS_SCRIPT_FILE
 
-service $SSHD_SERVICE_NAME restart
+if [ -f "/etc/init.d/sshd" ]; then
+  service sshd restart
+else
+  service ssh restart
+fi
