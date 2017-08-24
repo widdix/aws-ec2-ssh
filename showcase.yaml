@@ -16,36 +16,77 @@ Parameters:
     Description: 'Optional key pair of the ec2-user to establish a SSH connection to the EC2 instance when things go wrong.'
     Type: String
     Default: ''
+  OS:
+    Description: 'Operating system'
+    Type: String
+    Default: 'AmazonLinux'
+    AllowedValues:
+    - AmazonLinux
+    - Ubuntu
 Mappings:
-  RegionMap:
+  OSMap:
+    AmazonLinux:
+      RegionMap: RegionMapAmazonLinux
+    Ubuntu:
+      RegionMap: RegionMapUbuntu
+  RegionMapAmazonLinux:
     'ap-south-1':
-      AMI: 'ami-47205e28'
+      AMI: 'ami-d7abd1b8'
     'eu-west-2':
-      AMI: 'ami-ed100689'
+      AMI: 'ami-489f8e2c'
     'eu-west-1':
-      AMI: 'ami-d7b9a2b1'
+      AMI: 'ami-ebd02392'
     'ap-northeast-2':
-      AMI: 'ami-e21cc38c'
+      AMI: 'ami-8663bae8'
     'ap-northeast-1':
-      AMI: 'ami-3bd3c45c'
+      AMI: 'ami-4af5022c'
     'sa-east-1':
-      AMI: 'ami-87dab1eb'
+      AMI: 'ami-d27203be'
     'ca-central-1':
-      AMI: 'ami-a7aa15c3'
+      AMI: 'ami-5ac17f3e'
     'ap-southeast-1':
-      AMI: 'ami-77af2014'
+      AMI: 'ami-fdb8229e'
     'ap-southeast-2':
-      AMI: 'ami-10918173'
+      AMI: 'ami-30041c53'
     'eu-central-1':
-      AMI: 'ami-82be18ed'
+      AMI: 'ami-657bd20a'
     'us-east-1':
-      AMI: 'ami-a4c7edb2'
+      AMI: 'ami-4fffc834'
     'us-east-2':
-      AMI: 'ami-8a7859ef'
+      AMI: 'ami-ea87a78f'
     'us-west-1':
-      AMI: 'ami-327f5352'
+      AMI: 'ami-3a674d5a'
     'us-west-2':
-      AMI: 'ami-6df1e514'
+      AMI: 'ami-aa5ebdd2'
+  RegionMapUbuntu:
+    'ap-south-1':
+      AMI: 'ami-099fe766'
+    'eu-west-2':
+      AMI: 'ami-996372fd'
+    'eu-west-1':
+      AMI: 'ami-785db401'
+    'ap-northeast-2':
+      AMI: 'ami-d28a53bc'
+    'ap-northeast-1':
+      AMI: 'ami-ea4eae8c'
+    'sa-east-1':
+      AMI: 'ami-10186f7c'
+    'ca-central-1':
+      AMI: 'ami-9818a7fc'
+    'ap-southeast-1':
+      AMI: 'ami-6f198a0c'
+    'ap-southeast-2':
+      AMI: 'ami-e2021d81'
+    'eu-central-1':
+      AMI: 'ami-1e339e71'
+    'us-east-1':
+      AMI: 'ami-cd0f5cb6'
+    'us-east-2':
+      AMI: 'ami-10547475'
+    'us-west-1':
+      AMI: 'ami-09d2fb69'
+    'us-west-2':
+      AMI: 'ami-6e1a0117'
 Conditions:
   UseCrossAccountIAM: !Not [!Equals [!Ref AssumeRole, '']]
   UseLocalIAM: !Equals [!Ref AssumeRole, '']
@@ -123,7 +164,7 @@ Resources:
               git: []
           files:
             '/opt/install.sh':
-              source: 'https://raw.githubusercontent.com/widdix/aws-ec2-ssh/master/install.sh'
+              source: 'https://github.com/widdix/aws-ec2-ssh/raw/ubuntu/install.sh'
               mode: '000755'
               owner: root
               group: root
@@ -137,7 +178,7 @@ Resources:
                 enabled: true
                 ensureRunning: true
     Properties:
-      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      ImageId: !FindInMap [!FindInMap [OSMap, !Ref OS, RegionMap], !Ref 'AWS::Region', AMI]
       IamInstanceProfile: !Ref InstanceProfile
       InstanceType: 't2.micro'
       KeyName: !If [HasKeyName, !Ref KeyName, !Ref 'AWS::NoValue']

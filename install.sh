@@ -115,7 +115,7 @@ tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
-git clone https://github.com/widdix/aws-ec2-ssh.git
+git clone -b ubuntu https://github.com/widdix/aws-ec2-ssh.git
 
 cd "$tmpdir/aws-ec2-ssh"
 
