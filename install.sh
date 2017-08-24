@@ -28,6 +28,11 @@ Install import_users.sh and authorized_key_commands.
 EOF
 }
 
+SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
+AUTHORIZED_KEYS_COMMAND_FILE="/opt/authorized_keys_command.sh"
+IMPORT_USERS_SCRIPT_FILE="/opt/import_users.sh"
+MAIN_CONFIG_FILE="/etc/aws-ec2-ssh.conf"
+
 IAM_GROUPS=""
 SUDO_GROUPS=""
 LOCAL_GROUPS=""
@@ -79,55 +84,68 @@ tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
-git clone https://github.com/widdix/aws-ec2-ssh.git
+git clone -b master https://github.com/widdix/aws-ec2-ssh.git
 
 cd "$tmpdir/aws-ec2-ssh"
 
-cp authorized_keys_command.sh /opt/authorized_keys_command.sh
-cp import_users.sh /opt/import_users.sh
+cp authorized_keys_command.sh $AUTHORIZED_KEYS_COMMAND_FILE
+cp import_users.sh $IMPORT_USERS_SCRIPT_FILE
 
 if [ "${IAM_GROUPS}" != "" ]
 then
-    echo "IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"" >> /etc/aws-ec2-ssh.conf
+    echo "IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"" >> $MAIN_CONFIG_FILE
 fi
 
 if [ "${SUDO_GROUPS}" != "" ]
 then
-    echo "SUDOERS_GROUPS=\"${SUDO_GROUPS}\"" >> /etc/aws-ec2-ssh.conf
+    echo "SUDOERS_GROUPS=\"${SUDO_GROUPS}\"" >> $MAIN_CONFIG_FILE
 fi
 
 if [ "${LOCAL_GROUPS}" != "" ]
 then
-    echo "LOCAL_GROUPS=\"${LOCAL_GROUPS}\"" >> /etc/aws-ec2-ssh.conf
+    echo "LOCAL_GROUPS=\"${LOCAL_GROUPS}\"" >> $MAIN_CONFIG_FILE
 fi
 
 if [ "${ASSUME_ROLE}" != "" ]
 then
-    echo "ASSUMEROLE=\"${ASSUME_ROLE}\"" >> /etc/aws-ec2-ssh.conf
+    echo "ASSUMEROLE=\"${ASSUME_ROLE}\"" >> $MAIN_CONFIG_FILE
 fi
 
 if [ "${USERADD_PROGRAM}" != "" ]
 then
-    echo "USERADD_PROGRAM=\"${USERADD_PROGRAM}\"" >> /etc/aws-ec2-ssh.conf
+    echo "USERADD_PROGRAM=\"${USERADD_PROGRAM}\"" >> $MAIN_CONFIG_FILE
 fi
 
 if [ "${USERADD_ARGS}" != "" ]
 then
-    echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> /etc/aws-ec2-ssh.conf
+    echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> $MAIN_CONFIG_FILE
 fi
 
-sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /opt/authorized_keys_command.sh:g' /etc/ssh/sshd_config
-sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
+if grep -q '#AuthorizedKeysCommand none' $SSHD_CONFIG_FILE; then
+    sed -i "s:#AuthorizedKeysCommand none:AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}:g" $SSHD_CONFIG_FILE
+else
+    echo "AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}" >> $SSHD_CONFIG_FILE
+fi
+
+if grep -q '#AuthorizedKeysCommandUser nobody' $SSHD_CONFIG_FILE; then
+    sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" $SSHD_CONFIG_FILE
+else
+    echo "AuthorizedKeysCommandUser nobody" >> $SSHD_CONFIG_FILE
+fi
 
 cat > /etc/cron.d/import_users << EOF
 SHELL=/bin/bash
 PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/aws/bin
 MAILTO=root
 HOME=/
-*/10 * * * * root /opt/import_users.sh
+*/10 * * * * root $IMPORT_USERS_SCRIPT_FILE
 EOF
 chmod 0644 /etc/cron.d/import_users
 
-/opt/import_users.sh
+$IMPORT_USERS_SCRIPT_FILE
 
-service sshd restart
+if [ -f "/etc/init.d/sshd" ]; then
+  service sshd restart
+else
+  service ssh restart
+fi

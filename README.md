@@ -1,6 +1,6 @@
 # Manage AWS EC2 SSH access with IAM
 
-Use your IAM user's public SSH key to get access via SSH to an EC2 instance with **Amazon Linux**.
+Use your IAM user's public SSH key to get access via SSH to an EC2 instance running **Amazon Linux** or **Ubuntu**. Depends on the [AWS CLI](https://aws.amazon.com/cli/) and `git` if you use the `install.sh` script.
 
 ## How does it work
 
@@ -147,4 +147,4 @@ For your EC2 instances, you need a IAM role that allows the `sts:AssumeRole` act
 * this solution will work for ~100 IAM users and ~100 EC2 instances. If your setup is much larger (e.g. 10 times more users or 10 times more EC2 instances) you may run into two issues:
   * IAM API limitations
   * Disk space issues
-* not all IAM user names are allowed in Linux user names. See section [IAM user names and Linux user names](#iam-user-names-and-linux-user-names) for further details.
+* **not all IAM user names are allowed in Linux user names** (e.g. if you use email addresses as IAM user names). See section [IAM user names and Linux user names](#iam-user-names-and-linux-user-names) for further details.
