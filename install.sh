@@ -84,9 +84,12 @@ tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
-git clone -b master https://github.com/widdix/aws-ec2-ssh.git
+GITHUB_VERSION=${GITHUB_VERSION:-master}
+wget https://github.com/widdix/aws-ec2-ssh/archive/${GITHUB_VERSION}.zip
+unzip ${GITHUB_VERSION}.zip
+rm -f ${GITHUB_VERSION}.zip
 
-cd "$tmpdir/aws-ec2-ssh"
+cd "$tmpdir/aws-ec2-ssh-${GITHUB_VERSION}"
 
 cp authorized_keys_command.sh $AUTHORIZED_KEYS_COMMAND_FILE
 cp import_users.sh $IMPORT_USERS_SCRIPT_FILE
