@@ -84,9 +84,14 @@ tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
-git clone -b master https://github.com/widdix/aws-ec2-ssh.git
+curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+unzip awscli-bundle.zip
+./awscli-bundle/install -b ~/bin/aws
 
-cd "$tmpdir/aws-ec2-ssh"
+GITHUB_VERSION=${GITHUB_VERSION:-master}
+curl -L https://github.com/widdix/aws-ec2-ssh/archive/${GITHUB_VERSION}.tar.gz | tar -xzf -
+
+cd "$tmpdir/aws-ec2-ssh-${GITHUB_VERSION}"
 
 cp authorized_keys_command.sh $AUTHORIZED_KEYS_COMMAND_FILE
 cp import_users.sh $IMPORT_USERS_SCRIPT_FILE
