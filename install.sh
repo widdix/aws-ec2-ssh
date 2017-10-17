@@ -84,6 +84,10 @@ tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
+curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+unzip awscli-bundle.zip
+./awscli-bundle/install -b ~/bin/aws
+
 GITHUB_VERSION=${GITHUB_VERSION:-master}
 curl -L https://github.com/widdix/aws-ec2-ssh/archive/${GITHUB_VERSION}.tar.gz | tar -xzf -
 
