@@ -81,15 +81,16 @@ do
 done
 
 tmpdir=$(mktemp -d)
-
 cd "$tmpdir"
 
-git clone -b master https://github.com/widdix/aws-ec2-ssh.git
+AWSCLI_GITHUB_VERSION=${AWSCLI_GITHUB_VERSION:-develop}
+curl -L https://github.com/aws/aws-cli/archive/develop.tar.gz | tar -xzf -
+easy_install "./aws-cli-${AWSCLI_GITHUB_VERSION}/"
 
-cd "$tmpdir/aws-ec2-ssh"
-
-cp authorized_keys_command.sh $AUTHORIZED_KEYS_COMMAND_FILE
-cp import_users.sh $IMPORT_USERS_SCRIPT_FILE
+EC2SSH_GITHUB_VERSION=${EC2SSH_GITHUB_VERSION:-master}
+curl -L https://github.com/widdix/aws-ec2-ssh/archive/${EC2SSH_GITHUB_VERSION}.tar.gz | tar -xzf -
+cp "./aws-ec2-ssh-${EC2SSH_GITHUB_VERSION}/authorized_keys_command.sh" $AUTHORIZED_KEYS_COMMAND_FILE
+cp "./aws-ec2-ssh-${EC2SSH_GITHUB_VERSION}/import_users.sh" $IMPORT_USERS_SCRIPT_FILE
 
 if [ "${IAM_GROUPS}" != "" ]
 then
