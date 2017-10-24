@@ -52,6 +52,14 @@ function log() {
     /usr/bin/logger -i -p auth.info -t aws-ec2-ssh "$@"
 }
 
+function require {
+    command -v $1 > /dev/null 2>&1 || {
+        _echo "Some of the required software is not installed:"
+        _echo "    please install $1" >&2;
+        exit 1;
+    }
+}
+
 function setup_aws_credentials() {
     local stscredentials
     if [[ ! -z "${ASSUMEROLE}" ]]
@@ -216,6 +224,9 @@ function clean_iam_username() {
 }
 
 function sync_accounts() {
+
+    require jq
+
     if [ -z "${LOCAL_MARKER_GROUP}" ]
     then
         echo "Please specify a local group to mark imported users. eg iam-synced-users"
