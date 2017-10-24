@@ -54,8 +54,8 @@ function log() {
 
 function require {
     command -v $1 > /dev/null 2>&1 || {
-        _echo "Some of the required software is not installed:"
-        _echo "    please install $1" >&2;
+        echo "Some of the required software is not installed:"
+        echo "    please install $1" >&2;
         exit 1;
     }
 }
