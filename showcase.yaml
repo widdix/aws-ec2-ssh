@@ -128,7 +128,7 @@ Resources:
         Version: 2012-10-17
         Statement:
         - Effect: Allow
-          Action: 
+          Action:
           - iam:ListUsers
           - iam:GetGroup
           Resource: '*'
@@ -153,17 +153,27 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #cloud-config
+
           packages:
+            # Install packages needed to install the cloudformation bootstrap from source
+            # (doing this to be more cross platform compatible)
             - python-setuptools
             - curl
             - tar
+
           runcmd:
+            # Install cfn tools
             - tmpdir=$(mktemp -d)
             - cd "$tmpdir"
             - curl https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz | tar -xzvf -
             - easy_install ./aws-cfn-bootstrap-*/
+
+            # Run cfn-init which will execute the metadata
             - /usr/local/bin/cfn-init --verbose --stack="${AWS::StackName}" --region="${AWS::Region}" --resource=Instance
+
+            # Signal success/failure to the cloudformation stack
             - /usr/local/bin/cfn-signal --exit-code $? --stack="${AWS::StackName}" --region="${AWS::Region}" --resource=Instance
+
       NetworkInterfaces:
       - AssociatePublicIpAddress: true
         DeleteOnTermination: true
@@ -171,6 +181,7 @@ Resources:
         DeviceIndex: 0
         GroupSet:
         - !Ref SecurityGroup
+
       Tags:
       - Key: Name
         Value: AWS EC2 SSH access with IAM showcase
@@ -179,16 +190,22 @@ Resources:
       AWS::CloudFormation::Init:
         config:
           files:
+            # Pull down the install script directly from gihub
             /opt/install.sh:
               mode: '000755'
               owner: root
               group: root
               source: !Sub https://raw.githubusercontent.com/ebmeierj/aws-ec2-ssh/${EcsSshVersion}/install.sh
+
           commands:
+            # Run the install script
             01_install_ec2_ssh:
               command: !Sub EC2SSH_GITHUB_VERSION=${EcsSshVersion} ./install.sh -a "${AssumeRole}"
               cwd: /opt
 
+    # This creation policy tells cloudformation to wait for a signal (sent in the userdata portion of the config) before
+    # considering the resource creation to be complete. The resource and stack creation will fail if a signal is not received
+    # by the timeout.
     CreationPolicy:
       ResourceSignal:
         Count: 1
