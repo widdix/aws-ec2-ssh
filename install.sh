@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+PATH=${PATH}:/usr/local/bin
+
 show_help() {
 cat << EOF
 Usage: ${0##*/} [-hv] [-a ARN] [-i GROUP,GROUP,...] [-l GROUP,GROUP,...] [-s GROUP] [-p PROGRAM] [-u "ARGUMENTS"]
@@ -84,8 +86,7 @@ tmpdir=$(mktemp -d)
 cd "$tmpdir"
 
 AWSCLI_GITHUB_VERSION=${AWSCLI_GITHUB_VERSION:-develop}
-curl -L https://github.com/aws/aws-cli/archive/develop.tar.gz | tar -xzf -
-easy_install "./aws-cli-${AWSCLI_GITHUB_VERSION}/"
+easy_install https://github.com/aws/aws-cli/archive/${AWSCLI_GITHUB_VERSION}.tar.gz
 
 EC2SSH_GITHUB_VERSION=${EC2SSH_GITHUB_VERSION:-master}
 curl -L https://github.com/widdix/aws-ec2-ssh/archive/${EC2SSH_GITHUB_VERSION}.tar.gz | tar -xzf -
