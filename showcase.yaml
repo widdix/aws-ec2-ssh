@@ -163,10 +163,7 @@ Resources:
 
           runcmd:
             # Install cfn tools
-            - tmpdir=$(mktemp -d)
-            - cd "$tmpdir"
-            - curl https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz | tar -xzvf -
-            - easy_install ./aws-cfn-bootstrap-*/
+            - easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
 
             # Run cfn-init which will execute the metadata
             - /usr/local/bin/cfn-init --verbose --stack="${AWS::StackName}" --region="${AWS::Region}" --resource=Instance
