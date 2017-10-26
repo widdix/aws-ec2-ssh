@@ -62,9 +62,10 @@ function setup_aws_credentials() {
             --query '[Credentials.SessionToken,Credentials.AccessKeyId,Credentials.SecretAccessKey]' \
             --output text))
 
-        export AWS_ACCESS_KEY_ID=${stscredentials[0]} 
-        export AWS_SECRET_ACCESS_KEY=${stscredentials[1]} 
-        export AWS_SESSION_TOKEN=${stscredentials[2]}
+        export AWS_SESSION_TOKEN=${stscredentials[0]}
+        export AWS_ACCESS_KEY_ID=${stscredentials[1]}
+        export AWS_SECRET_ACCESS_KEY=${stscredentials[2]}
+
     fi
 }
 
@@ -217,6 +218,7 @@ function clean_iam_username() {
 }
 
 function sync_accounts() {
+
     if [ -z "${LOCAL_MARKER_GROUP}" ]
     then
         echo "Please specify a local group to mark imported users. eg iam-synced-users"
