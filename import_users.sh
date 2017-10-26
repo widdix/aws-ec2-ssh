@@ -52,25 +52,19 @@ function log() {
     /usr/bin/logger -i -p auth.info -t aws-ec2-ssh "$@"
 }
 
-function require {
-    command -v $1 > /dev/null 2>&1 || {
-        echo "Some of the required software is not installed:"
-        echo "    please install $1" >&2;
-        exit 1;
-    }
-}
-
 function setup_aws_credentials() {
     local stscredentials
     if [[ ! -z "${ASSUMEROLE}" ]]
     then
-        rawCreds=$(aws sts assume-role \
-        --role-arn "${ASSUMEROLE}" \
-        --role-session-name ssh-access)
+        stscredentials=($(aws sts assume-role \
+            --role-arn "${ASSUMEROLE}" \
+            --role-session-name something \
+            --query '[Credentials.SessionToken,Credentials.AccessKeyId,Credentials.SecretAccessKey]' \
+            --output text))
 
-        export AWS_ACCESS_KEY_ID="$(echo $rawCreds | jq -r '.Credentials.AccessKeyId')"
-        export AWS_SECRET_ACCESS_KEY="$(echo $rawCreds | jq -r '.Credentials.SecretAccessKey')"
-        export AWS_SESSION_TOKEN="$(echo $rawCreds | jq -r '.Credentials.SessionToken')"
+        export AWS_SESSION_TOKEN=${stscredentials[0]}
+        export AWS_ACCESS_KEY_ID=${stscredentials[1]}
+        export AWS_SECRET_ACCESS_KEY=${stscredentials[2]}
 
     fi
 }
@@ -224,8 +218,6 @@ function clean_iam_username() {
 }
 
 function sync_accounts() {
-
-    require jq
 
     if [ -z "${LOCAL_MARKER_GROUP}" ]
     then
