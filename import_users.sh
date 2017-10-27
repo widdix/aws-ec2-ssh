@@ -56,15 +56,17 @@ function setup_aws_credentials() {
     local stscredentials
     if [[ ! -z "${ASSUMEROLE}" ]]
     then
-        stscredentials=($(aws sts assume-role \
+        stscredentials=$(aws sts assume-role \
             --role-arn "${ASSUMEROLE}" \
             --role-session-name something \
             --query '[Credentials.SessionToken,Credentials.AccessKeyId,Credentials.SecretAccessKey]' \
-            --output text))
+            --output text)
 
-        export AWS_ACCESS_KEY_ID=${stscredentials[0]} 
-        export AWS_SECRET_ACCESS_KEY=${stscredentials[1]} 
-        export AWS_SESSION_TOKEN=${stscredentials[2]}
+        AWS_ACCESS_KEY_ID=$(echo "${stscredentials}" | awk '{print $2}')
+        AWS_SECRET_ACCESS_KEY=$(echo "${stscredentials}" | awk '{print $3}')
+        AWS_SESSION_TOKEN=$(echo "${stscredentials}" | awk '{print $1}')
+        AWS_SECURITY_TOKEN=$(echo "${stscredentials}" | awk '{print $1}')
+        export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
     fi
 }
 
