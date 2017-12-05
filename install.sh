@@ -154,11 +154,16 @@ $IMPORT_USERS_SCRIPT_FILE
 #
 # This is observed on CentOS 7 and RHEL 7
 
-if [[ `which getenforce` -eq "0" ]]; then
+# Capture the return code and use that to determine if we have the command available
+which getenforce > /dev/null 2>&1
+retval=$?
+
+if [[ "$retval" -eq "0" ]]; then
   if [[ `getenforce | grep -q "Enforcing"` -eq "0" ]]; then
     setsebool -P nis_enabled on
   fi
 fi
+
 
 # Restart sshd using an appropriate method based on the currently running init daemon
 # Note that systemd can return "running" or "degraded" (If a systemd unit has failed)
@@ -166,7 +171,11 @@ fi
 # systemd is also not standardized in the name of the ssh service, nor in the places
 # where the unit files are stored.
 
-if [[ `which systemctl` -eq "0" ]]; then
+# Capture the return code and use that to determine if we have the command available
+which systemctl > /dev/null 2>&1
+retval=$?
+
+if [[ "$retval" -eq "0" ]]; then
   if [[ (`systemctl is-system-running` =~ running) || (`systemctl is-system-running` =~ degraded) ]]; then
     if [ -f "/usr/lib/systemd/system/sshd.service" ] || [ -f "/lib/systemd/system/sshd.service" ]; then
       systemctl restart sshd.service
