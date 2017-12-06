@@ -155,9 +155,11 @@ $IMPORT_USERS_SCRIPT_FILE
 # This is observed on CentOS 7 and RHEL 7
 
 # Capture the return code and use that to determine if we have the command available
+retval=0
 which getenforce > /dev/null 2>&1 || retval=$?
 
 if [[ "$retval" -eq "0" ]]; then
+  retval=0
   selinuxenabled || retval=$?
   if [[ "$retval" -eq "0" ]]; then
     setsebool -P nis_enabled on
@@ -172,6 +174,7 @@ fi
 # where the unit files are stored.
 
 # Capture the return code and use that to determine if we have the command available
+retval=0
 which systemctl > /dev/null 2>&1 || retval=$?
 
 if [[ "$retval" -eq "0" ]]; then
