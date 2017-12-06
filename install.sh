@@ -155,16 +155,10 @@ $IMPORT_USERS_SCRIPT_FILE
 # This is observed on CentOS 7 and RHEL 7
 
 # Capture the return code and use that to determine if we have the command available
-# We also want to continue on non-zero exit codes, because this determines if we have
-# the command available to us
-set +e
-which getenforce > /dev/null 2>&1
-retval=$?
-set -e
+which getenforce > /dev/null 2>&1 || retval=$?
 
 if [[ "$retval" -eq "0" ]]; then
-  selinuxenabled
-  retval=$?
+  selinuxenabled || retval=$?
   if [[ "$retval" -eq "0" ]]; then
     setsebool -P nis_enabled on
   fi
@@ -178,12 +172,7 @@ fi
 # where the unit files are stored.
 
 # Capture the return code and use that to determine if we have the command available
-# We also want to continue on non-zero exit codes, because this determines if we have
-# the command available to us
-set +e
-which systemctl > /dev/null 2>&1
-retval=$?
-set -e
+which systemctl > /dev/null 2>&1 || retval=$?
 
 if [[ "$retval" -eq "0" ]]; then
   if [[ (`systemctl is-system-running` =~ running) || (`systemctl is-system-running` =~ degraded) ]]; then
