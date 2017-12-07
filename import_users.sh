@@ -42,7 +42,7 @@ fi
 : ${USERADD_PROGRAM:="/usr/sbin/useradd"}
 
 # Possibility to provide custom useradd arguments
-: ${USERADD_ARGS:="--create-home --shell /bin/bash"}
+: ${USERADD_ARGS:="--user-group --create-home --shell /bin/bash"}
 
 # Initizalize INSTANCE variable
 INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
