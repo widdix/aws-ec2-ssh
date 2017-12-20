@@ -17,5 +17,5 @@ $ for region in $regions; do ami=$(aws --region $region ec2 describe-images --fi
 ### RegionMapUbuntu
 
 ```
-$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20170721" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
+$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20171208" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
 ```

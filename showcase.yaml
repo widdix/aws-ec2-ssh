@@ -39,37 +39,67 @@ Mappings:
     Ubuntu: {RegionMap: RegionMapUbuntu}
 
   RegionMapAmazonLinux:
-    ap-south-1: {AMI: ami-d7abd1b8}
-    eu-west-2: {AMI: ami-489f8e2c}
-    eu-west-1: {AMI: ami-ebd02392}
-    ap-northeast-2: {AMI: ami-8663bae8}
-    ap-northeast-1: {AMI: ami-4af5022c}
-    sa-east-1: {AMI: ami-d27203be}
-    ca-central-1: {AMI: ami-5ac17f3e}
-    ap-southeast-1: {AMI: ami-fdb8229e}
-    ap-southeast-2: {AMI: ami-30041c53}
-    eu-central-1: {AMI: ami-657bd20a}
-    us-east-1: {AMI: ami-4fffc834}
-    us-east-2: {AMI: ami-ea87a78f}
-    us-west-1: {AMI: ami-3a674d5a}
-    us-west-2: {AMI: ami-aa5ebdd2}
-
+    'ap-south-1':
+      AMI: 'ami-2ed19c41'
+    'eu-west-3':
+      AMI: 'ami-c8a017b5'
+    'eu-west-2':
+      AMI: 'ami-e3051987'
+    'eu-west-1':
+      AMI: 'ami-760aaa0f'
+    'ap-northeast-2':
+      AMI: 'ami-fc862292'
+    'ap-northeast-1':
+      AMI: 'ami-2803ac4e'
+    'sa-east-1':
+      AMI: 'ami-1678037a'
+    'ca-central-1':
+      AMI: 'ami-ef3b838b'
+    'ap-southeast-1':
+      AMI: 'ami-dd7935be'
+    'ap-southeast-2':
+      AMI: 'ami-1a668878'
+    'eu-central-1':
+      AMI: 'ami-e28d098d'
+    'us-east-1':
+      AMI: 'ami-6057e21a'
+    'us-east-2':
+      AMI: 'ami-aa1b34cf'
+    'us-west-1':
+      AMI: 'ami-1a033c7a'
+    'us-west-2':
+      AMI: 'ami-32d8124a'
   RegionMapUbuntu:
-    ap-south-1: {AMI: ami-099fe766}
-    eu-west-2: {AMI: ami-996372fd}
-    eu-west-1: {AMI: ami-785db401}
-    ap-northeast-2: {AMI: ami-d28a53bc}
-    ap-northeast-1: {AMI: ami-ea4eae8c}
-    sa-east-1: {AMI: ami-10186f7c}
-    ca-central-1: {AMI: ami-9818a7fc}
-    ap-southeast-1: {AMI: ami-6f198a0c}
-    ap-southeast-2: {AMI: ami-e2021d81}
-    eu-central-1: {AMI: ami-1e339e71}
-    us-east-1: {AMI: ami-cd0f5cb6}
-    us-east-2: {AMI: ami-10547475}
-    us-west-1: {AMI: ami-09d2fb69}
-    us-west-2: {AMI: ami-6e1a0117}
-
+    'ap-south-1':
+      AMI: 'ami-84dc94eb'
+    'eu-west-3':
+      AMI: 'ami-794bfc04'
+    'eu-west-2':
+      AMI: 'ami-22415846'
+    'eu-west-1':
+      AMI: 'ami-63b0341a'
+    'ap-northeast-2':
+      AMI: 'ami-5027813e'
+    'ap-northeast-1':
+      AMI: 'ami-42ca4724'
+    'sa-east-1':
+      AMI: 'ami-8181c7ed'
+    'ca-central-1':
+      AMI: 'ami-b0c67cd4'
+    'ap-southeast-1':
+      AMI: 'ami-29aece55'
+    'ap-southeast-2':
+      AMI: 'ami-9b8076f9'
+    'eu-central-1':
+      AMI: 'ami-13b8337c'
+    'us-east-1':
+      AMI: 'ami-3dec9947'
+    'us-east-2':
+      AMI: 'ami-597d553c'
+    'us-west-1':
+      AMI: 'ami-1a17137a'
+    'us-west-2':
+      AMI: 'ami-a2e544da'
 Conditions:
   UseCrossAccountIAM: !Not [!Equals [!Ref AssumeRole, '']]
   UseLocalIAM: !Equals [!Ref AssumeRole, '']
