@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+PATH=${PATH}:/usr/local/bin
+
 show_help() {
 cat << EOF
 Usage: ${0##*/} [-hv] [-a ARN] [-i GROUP,GROUP,...] [-l GROUP,GROUP,...] [-s GROUP] [-p PROGRAM] [-u "ARGUMENTS"]
@@ -81,15 +83,15 @@ do
 done
 
 tmpdir=$(mktemp -d)
-
 cd "$tmpdir"
 
-git clone -b master https://github.com/widdix/aws-ec2-ssh.git
+AWSCLI_GITHUB_VERSION=${AWSCLI_GITHUB_VERSION:-develop}
+easy_install https://github.com/aws/aws-cli/archive/${AWSCLI_GITHUB_VERSION}.tar.gz
 
-cd "$tmpdir/aws-ec2-ssh"
-
-cp authorized_keys_command.sh $AUTHORIZED_KEYS_COMMAND_FILE
-cp import_users.sh $IMPORT_USERS_SCRIPT_FILE
+EC2SSH_GITHUB_VERSION=${EC2SSH_GITHUB_VERSION:-master}
+curl -L https://github.com/widdix/aws-ec2-ssh/archive/${EC2SSH_GITHUB_VERSION}.tar.gz | tar -xzf -
+cp "./aws-ec2-ssh-${EC2SSH_GITHUB_VERSION}/authorized_keys_command.sh" $AUTHORIZED_KEYS_COMMAND_FILE
+cp "./aws-ec2-ssh-${EC2SSH_GITHUB_VERSION}/import_users.sh" $IMPORT_USERS_SCRIPT_FILE
 
 if [ "${IAM_GROUPS}" != "" ]
 then

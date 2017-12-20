@@ -1,34 +1,43 @@
 ---
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'AWS EC2 SSH access with IAM showcase'
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS EC2 SSH access with IAM showcase
 Parameters:
   VPC:
-    Type: 'AWS::EC2::VPC::Id'
-    Description: 'The VPC the EC2 instance is launched into.'
+    Type: AWS::EC2::VPC::Id
+    Description: The VPC the EC2 instance is launched into
+
   Subnet:
-    Type: 'AWS::EC2::Subnet::Id'
-    Description: 'The subnet the EC2 instance is launched into.'
+    Type: AWS::EC2::Subnet::Id
+    Description: The subnet the EC2 instance is launched into
+
   AssumeRole:
-    Type: 'String'
-    Description: 'Optional IAM role ARN to assume to get the IAM users from another account'
+    Type: String
+    Description: Optional IAM role ARN to assume to get the IAM users from another account
     Default: ''
+
   KeyName:
-    Description: 'Optional key pair of the ec2-user to establish a SSH connection to the EC2 instance when things go wrong.'
+    Description: Optional key pair of the ec2-user to establish a SSH connection to the EC2 instance when things go wrong
     Type: String
     Default: ''
+
   OS:
-    Description: 'Operating system'
+    Description: Operating system
     Type: String
-    Default: 'AmazonLinux'
+    Default: AmazonLinux
     AllowedValues:
     - AmazonLinux
     - Ubuntu
+
+  EcsSshVersion:
+    Type: String
+    Default: master
+    Description: The github version of the ec2 ssh config scripts to use
+
 Mappings:
   OSMap:
-    AmazonLinux:
-      RegionMap: RegionMapAmazonLinux
-    Ubuntu:
-      RegionMap: RegionMapUbuntu
+    AmazonLinux: {RegionMap: RegionMapAmazonLinux}
+    Ubuntu: {RegionMap: RegionMapUbuntu}
+
   RegionMapAmazonLinux:
     'ap-south-1':
       AMI: 'ami-2ed19c41'
@@ -94,115 +103,104 @@ Mappings:
 Conditions:
   UseCrossAccountIAM: !Not [!Equals [!Ref AssumeRole, '']]
   UseLocalIAM: !Equals [!Ref AssumeRole, '']
-  UseUbuntu: !Equals [!Ref OS, 'Ubuntu']
   HasKeyName: !Not [!Equals [!Ref KeyName, '']]
+
 Resources:
   SecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
+    Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: ssh
       VpcId: !Ref VPC
       SecurityGroupIngress:
-      - CidrIp: '0.0.0.0/0'
+      - CidrIp: 0.0.0.0/0
         IpProtocol: tcp
         FromPort: 22
         ToPort: 22
+
   InstanceProfile:
-    Type: 'AWS::IAM::InstanceProfile'
+    Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
       - !Ref Role
+
   Role:
-    Type: 'AWS::IAM::Role'
+    Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: 2012-10-17
         Statement:
         - Effect: Allow
           Principal:
-            Service: 'ec2.amazonaws.com'
-          Action: 'sts:AssumeRole'
+            Service: ec2.amazonaws.com
+          Action: sts:AssumeRole
       Path: /
+
   CrossAccountRolePolicy:
-    Type: 'AWS::IAM::Policy'
+    Type: AWS::IAM::Policy
     Condition: UseCrossAccountIAM
     Properties:
       PolicyName: crossaccountiam
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
-            Action: 'sts:AssumeRole'
+            Action: sts:AssumeRole
             Resource: !Ref AssumeRole
       Roles:
         - !Ref Role
+
   LocalRolePolicy:
-    Type: 'AWS::IAM::Policy'
+    Type: AWS::IAM::Policy
     Condition: UseLocalIAM
     Properties:
       PolicyName: iam
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: 2012-10-17
         Statement:
         - Effect: Allow
-          Action: 
-          - 'iam:ListUsers'
-          - 'iam:GetGroup'
+          Action:
+          - iam:ListUsers
+          - iam:GetGroup
           Resource: '*'
         - Effect: Allow
           Action:
-          - 'iam:ListSSHPublicKeys'
-          - 'iam:GetSSHPublicKey'
-          Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:user/*'
+          - iam:ListSSHPublicKeys
+          - iam:GetSSHPublicKey
+          Resource: !Sub arn:aws:iam::${AWS::AccountId}:user/*
         - Effect: Allow
-          Action: 'ec2:DescribeTags'
+          Action: ec2:DescribeTags
           Resource: '*'
       Roles:
         - !Ref Role
+
   Instance:
     Type: AWS::EC2::Instance
-    Metadata:
-      'AWS::CloudFormation::Init':
-        config:
-          packages: !If
-          - UseUbuntu
-          - apt:
-              git: []
-              awscli: []
-          - yum:
-              git: []
-          files:
-            '/opt/install.sh':
-              source: 'https://raw.githubusercontent.com/widdix/aws-ec2-ssh/master/install.sh'
-              mode: '000755'
-              owner: root
-              group: root
-          commands:
-            a_install:
-              command: !Sub './install.sh -a "${AssumeRole}"'
-              cwd: '/opt'
     Properties:
       ImageId: !FindInMap [!FindInMap [OSMap, !Ref OS, RegionMap], !Ref 'AWS::Region', AMI]
       IamInstanceProfile: !Ref InstanceProfile
-      InstanceType: 't2.micro'
+      InstanceType: t2.micro
       KeyName: !If [HasKeyName, !Ref KeyName, !Ref 'AWS::NoValue']
-      UserData: !If
-      - UseUbuntu
-      - 'Fn::Base64': !Sub |
-          #!/bin/bash -x
-          bash -ex << "TRY"
-            apt-get update
-            apt-get -y install python-setuptools
-            mkdir aws-cfn-bootstrap-latest
-            curl -s -m 60 https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz | tar xz -C aws-cfn-bootstrap-latest --strip-components 1
-            easy_install aws-cfn-bootstrap-latest
-            /usr/local/bin/cfn-init --verbose --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
-          TRY
-          /usr/local/bin/cfn-signal --exit-code $? --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
-      - 'Fn::Base64': !Sub |
-          #!/bin/bash -x
-          /opt/aws/bin/cfn-init --verbose --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
-          /opt/aws/bin/cfn-signal --exit-code $? --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
+      UserData:
+        Fn::Base64: !Sub |
+          #cloud-config
+
+          packages:
+            # Install packages needed to install the cloudformation bootstrap from source
+            # (doing this to be more cross platform compatible)
+            - python-setuptools
+            - curl
+            - tar
+
+          runcmd:
+            # Install cfn tools
+            - easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+
+            # Run cfn-init which will execute the metadata
+            - /usr/local/bin/cfn-init --verbose --stack="${AWS::StackName}" --region="${AWS::Region}" --resource=Instance
+
+            # Signal success/failure to the cloudformation stack
+            - /usr/local/bin/cfn-signal --exit-code $? --stack="${AWS::StackName}" --region="${AWS::Region}" --resource=Instance
+
       NetworkInterfaces:
       - AssociatePublicIpAddress: true
         DeleteOnTermination: true
@@ -210,14 +208,37 @@ Resources:
         DeviceIndex: 0
         GroupSet:
         - !Ref SecurityGroup
+
       Tags:
       - Key: Name
-        Value: 'AWS EC2 SSH access with IAM showcase'
+        Value: AWS EC2 SSH access with IAM showcase
+
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          files:
+            # Pull down the install script directly from gihub
+            /opt/install.sh:
+              mode: '000755'
+              owner: root
+              group: root
+              source: !Sub https://raw.githubusercontent.com/ebmeierj/aws-ec2-ssh/${EcsSshVersion}/install.sh
+
+          commands:
+            # Run the install script
+            01_install_ec2_ssh:
+              command: !Sub EC2SSH_GITHUB_VERSION=${EcsSshVersion} ./install.sh -a "${AssumeRole}"
+              cwd: /opt
+
+    # This creation policy tells cloudformation to wait for a signal (sent in the userdata portion of the config) before
+    # considering the resource creation to be complete. The resource and stack creation will fail if a signal is not received
+    # by the timeout.
     CreationPolicy:
       ResourceSignal:
         Count: 1
         Timeout: PT15M
+
 Outputs:
   PublicName:
-    Description: 'The public name of the EC2 instance.'
-    Value: !GetAtt 'Instance.PublicDnsName'
+    Description: The public name of the EC2 instance
+    Value: !GetAtt Instance.PublicDnsName
