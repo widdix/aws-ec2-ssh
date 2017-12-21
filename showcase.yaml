@@ -145,7 +145,7 @@ Resources:
         Version: '2012-10-17'
         Statement:
         - Effect: Allow
-          Action: 
+          Action:
           - 'iam:ListUsers'
           - 'iam:GetGroup'
           Resource: '*'
@@ -181,6 +181,31 @@ Resources:
             a_install:
               command: !Sub './install.sh -a "${AssumeRole}"'
               cwd: '/opt'
+          services:
+            sysvinit: !If
+              - UseUbuntu
+              -
+                ssh:
+                  enabled: "true"
+                  ensureRunning: "true"
+                  sources:
+                    - "/opt"
+                  files:
+                    - "/etc/ssh/sshd_config"
+                    - "/opt/install.sh"
+                  commands:
+                    - "a_install"
+              -
+                sshd:
+                  enabled: "true"
+                  ensureRunning: "true"
+                  sources:
+                    - "/opt"
+                  files:
+                    - "/etc/ssh/sshd_config"
+                    - "/opt/install.sh"
+                  commands:
+                    - "a_install"
     Properties:
       ImageId: !FindInMap [!FindInMap [OSMap, !Ref OS, RegionMap], !Ref 'AWS::Region', AMI]
       IamInstanceProfile: !Ref InstanceProfile
