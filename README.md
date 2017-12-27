@@ -1,6 +1,13 @@
 # Manage AWS EC2 SSH access with IAM
 
-Use your IAM user's public SSH key to get access via SSH to an EC2 instance running **Amazon Linux** or **Ubuntu**. Depends on the [AWS CLI](https://aws.amazon.com/cli/) and `git` if you use the `install.sh` script.
+Use your IAM user's public SSH key to get access via SSH to an **EC2 instance** running
+* Amazon Linux 2017.09
+* Ubuntu 16.04
+* SUSE Linux Enterprise Server 12 SP3
+* RHEL 7.4
+* CentOS 7
+
+`aws-ec2-ssh` depends on the [AWS CLI](https://aws.amazon.com/cli/) and `git` if you use the `install.sh` script.
 
 ## How does it work
 
