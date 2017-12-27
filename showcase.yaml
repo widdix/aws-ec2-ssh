@@ -14,7 +14,7 @@ Parameters:
     Default: ''
   KeyName:
     Description: 'Optional key pair of the ec2-user to establish a SSH connection to the EC2 instance when things go wrong.'
-    Type: String
+    Type: 'AWS::EC2::KeyPair::KeyName'
     Default: ''
   OS:
     Description: 'Operating system'
