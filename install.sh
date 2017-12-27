@@ -178,7 +178,7 @@ retval=0
 which systemctl > /dev/null 2>&1 || retval=$?
 
 if [[ "$retval" -eq "0" ]]; then
-  if [[ (`systemctl is-system-running` =~ running) || (`systemctl is-system-running` =~ degraded) ]]; then
+  if [[ (`systemctl is-system-running` =~ running) || (`systemctl is-system-running` =~ degraded) || (`systemctl is-system-running` =~ starting) ]]; then
     if [ -f "/usr/lib/systemd/system/sshd.service" ] || [ -f "/lib/systemd/system/sshd.service" ]; then
       systemctl restart sshd.service
     else
