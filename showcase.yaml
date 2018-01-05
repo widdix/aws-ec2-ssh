@@ -38,7 +38,7 @@ Mappings:
       RegionMap: RegionMapAmazonLinux2
       UserData: |
         /opt/aws/bin/cfn-init --verbose --stack=${STACKNAME} --region=${REGION} --resource=Instance
-        /opt/aws/bin/cfn-signal --exit-code 0 --stack=${STACKNAME} --region=${REGION} --resource=Instance
+        /opt/aws/bin/cfn-signal --exit-code $? --stack=${STACKNAME} --region=${REGION} --resource=Instance
     Ubuntu:
       RegionMap: RegionMapUbuntu
       UserData: |
