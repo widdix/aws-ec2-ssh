@@ -77,35 +77,35 @@ Mappings:
         /bin/cfn-signal --exit-code $? --stack=${STACKNAME} --region=${REGION} --resource=Instance
   RegionMapAmazonLinux:
     'ap-south-1':
-      AMI: 'ami-d5c18eba'
+      AMI: 'ami-4c045023'
     'eu-west-3':
-      AMI: 'ami-dd8b3ca0'
+      AMI: 'ami-8715a2fa'
     'eu-west-2':
-      AMI: 'ami-e7d6c983'
+      AMI: 'ami-63243c07'
     'eu-west-1':
-      AMI: 'ami-1a962263'
+      AMI: 'ami-075eca7e'
     'ap-northeast-2':
-      AMI: 'ami-1196317f'
+      AMI: 'ami-7bef4f15'
     'ap-northeast-1':
-      AMI: 'ami-da9e2cbc'
+      AMI: 'ami-19910c7f'
     'sa-east-1':
-      AMI: 'ami-286f2a44'
+      AMI: 'ami-9582c1f9'
     'ca-central-1':
-      AMI: 'ami-d29e25b6'
+      AMI: 'ami-e5cc4981'
     'ap-southeast-1':
-      AMI: 'ami-c63d6aa5'
+      AMI: 'ami-1c99ee60'
     'ap-southeast-2':
-      AMI: 'ami-ff4ea59d'
+      AMI: 'ami-33996b51'
     'eu-central-1':
-      AMI: 'ami-bf2ba8d0'
+      AMI: 'ami-06a83869'
     'us-east-1':
-      AMI: 'ami-55ef662f'
+      AMI: 'ami-5583d42f'
     'us-east-2':
-      AMI: 'ami-15e9c770'
+      AMI: 'ami-e81b308d'
     'us-west-1':
-      AMI: 'ami-a51f27c5'
+      AMI: 'ami-2f99984f'
     'us-west-2':
-      AMI: 'ami-bf4193c7'
+      AMI: 'ami-a142e9d9'
   RegionMapUbuntu:
     'ap-south-1':
       AMI: 'ami-84dc94eb'
@@ -139,35 +139,35 @@ Mappings:
       AMI: 'ami-a2e544da'
   RegionMapSUSELinuxEnterpriseServer:
     'ap-south-1':
-      AMI: 'ami-01b3fb6e'
+      AMI: 'ami-f7267298'
     'eu-west-3':
-      AMI: 'ami-865fe8fb'
+      AMI: 'ami-f312a58e'
     'eu-west-2':
-      AMI: 'ami-1b51487f'
+      AMI: 'ami-fbcad29f'
     'eu-west-1':
-      AMI: 'ami-9628adef'
+      AMI: 'ami-32b6214b'
     'ap-northeast-2':
-      AMI: 'ami-3a51f754'
+      AMI: 'ami-2eff5f40'
     'ap-northeast-1':
-      AMI: 'ami-d944c6bf'
+      AMI: 'ami-bddd41db'
     'sa-east-1':
-      AMI: 'ami-c3682eaf'
+      AMI: 'ami-b1a1e2dd'
     'ca-central-1':
-      AMI: 'ami-4acd772e'
+      AMI: 'ami-61dc5905'
     'ap-southeast-1':
-      AMI: 'ami-cf0262b3'
+      AMI: 'ami-ce7006b2'
     'ap-southeast-2':
-      AMI: 'ami-4caf592e'
+      AMI: 'ami-15e81a77'
     'eu-central-1':
-      AMI: 'ami-00e06b6f'
+      AMI: 'ami-7215851d'
     'us-east-1':
-      AMI: 'ami-d4abc1ae'
+      AMI: 'ami-a03869da'
     'us-east-2':
-      AMI: 'ami-466f4723'
+      AMI: 'ami-75143f10'
     'us-west-1':
-      AMI: 'ami-f16b6f91'
+      AMI: 'ami-934242f3'
     'us-west-2':
-      AMI: 'ami-8368cefb'
+      AMI: 'ami-6bc56f13'
   RegionMapRHEL:
     'ap-south-1':
       AMI: 'ami-e41b618b'
