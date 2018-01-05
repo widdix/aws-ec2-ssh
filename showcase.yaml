@@ -22,6 +22,7 @@ Parameters:
     Default: 'AmazonLinux'
     AllowedValues:
     - AmazonLinux
+    - AmazonLinux2
     - Ubuntu
     - SUSELinuxEnterpriseServer
     - RHEL
@@ -33,6 +34,11 @@ Mappings:
       UserData: |
         /opt/aws/bin/cfn-init --verbose --stack=${STACKNAME} --region=${REGION} --resource=Instance
         /opt/aws/bin/cfn-signal --exit-code $? --stack=${STACKNAME} --region=${REGION} --resource=Instance
+    AmazonLinux2:
+      RegionMap: RegionMapAmazonLinux2
+      UserData: |
+        /opt/aws/bin/cfn-init --verbose --stack=${STACKNAME} --region=${REGION} --resource=Instance
+        /opt/aws/bin/cfn-signal --exit-code 0 --stack=${STACKNAME} --region=${REGION} --resource=Instance
     Ubuntu:
       RegionMap: RegionMapUbuntu
       UserData: |
@@ -106,6 +112,37 @@ Mappings:
       AMI: 'ami-2f99984f'
     'us-west-2':
       AMI: 'ami-a142e9d9'
+  RegionMapAmazonLinux2:
+    'ap-south-1':
+      AMI: 'ami-79c78f16'
+    'eu-west-3':
+      AMI: 'ami-185fe865'
+    'eu-west-2':
+      AMI: 'ami-424c5526'
+    'eu-west-1':
+      AMI: 'ami-b09e1ac9'
+    'ap-northeast-2':
+      AMI: 'ami-1559ff7b'
+    'ap-northeast-1':
+      AMI: 'ami-2a34b64c'
+    'sa-east-1':
+      AMI: 'ami-bd87c1d1'
+    'ca-central-1':
+      AMI: 'ami-9ab802fe'
+    'ap-southeast-1':
+      AMI: 'ami-b45030c8'
+    'ap-southeast-2':
+      AMI: 'ami-71867013'
+    'eu-central-1':
+      AMI: 'ami-29ae2546'
+    'us-east-1':
+      AMI: 'ami-0b542a71'
+    'us-east-2':
+      AMI: 'ami-e97c548c'
+    'us-west-1':
+      AMI: 'ami-ee03078e'
+    'us-west-2':
+      AMI: 'ami-7707a10f'
   RegionMapUbuntu:
     'ap-south-1':
       AMI: 'ami-84dc94eb'
@@ -299,6 +336,10 @@ Resources:
         configSets:
           default: [!Sub 'prepare${OS}', install]
         prepareAmazonLinux:
+          packages:
+            yum:
+              git: []
+        prepareAmazonLinux2:
           packages:
             yum:
               git: []
