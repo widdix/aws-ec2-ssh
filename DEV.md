@@ -13,7 +13,7 @@ $ regions=$(aws ec2 describe-regions --query "Regions[].RegionName" --output tex
 Default user: ec2-user
 
 ```
-$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=amzn-ami-hvm-2017.09.1.20180103-x86_64-gp2" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
+$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=amzn-ami-hvm-2017.09.1.20180108-x86_64-gp2" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
 ```
 
 ### RegionMapAmazonLinux2
