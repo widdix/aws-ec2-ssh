@@ -1,0 +1,23 @@
+# We will use the same code here as in the install.sh to detect if we need to use sed -i or append the configuartion
+# to the sshd_config file.
+# Even though we have a debconf managed config file, upgrading openssh-server package shouldn't overwrite an existing
+# sshd_config file, according to the base package's postinst script
+if grep -q '#AuthorizedKeysCommand none' /etc/ssh/sshd_config; then
+    sed -i "s:#AuthorizedKeysCommand none:AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh:g" /etc/ssh/sshd_config
+else
+    if ! grep -q "AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh" /etc/ssh/sshd_config; then
+        echo "AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh" >> /etc/ssh/sshd_config
+    fi
+fi
+
+if grep -q '#AuthorizedKeysCommandUser nobody' /etc/ssh/sshd_config; then
+    sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" /etc/ssh/sshd_config
+else
+    if ! grep -q 'AuthorizedKeysCommandUser nobody' /etc/ssh/sshd_config; then
+        echo "AuthorizedKeysCommandUser nobody" >> /etc/ssh/sshd_config
+    fi
+fi
+systemctl restart ssh.service
+systemctl restart cron.service
+
+echo "To configure the aws-ec2-ssh package, edit /etc/aws-ec2-ssh.conf. No users will be synchronized before you do this."
