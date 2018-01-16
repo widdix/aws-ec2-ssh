@@ -69,7 +69,7 @@ You can then run `fpm` to execute.
 
 To build the package, run the following (replacing <> values):
 ```
-fpm -t deb -n aws-ec2-ssh -v <VERSION_STAMP> -d bash -d openssh-server --license mit -a all -m "<MAINTAINER>" --vendor "widdix GmbH" --url "https://cloudonaut.io/manage-aws-ec2-ssh-access-with-iam/" --description "Manage AWS EC2 SSH access with IAM" --after-install pkg/postinst --after-remove pkg/postrm --config-files /etc/aws-ec2-ssh.conf -s dir  import_users.sh=/usr/bin/ authorized_keys_command.sh=/usr/bin/ aws-ec2-ssh.conf=/etc/ pkg/import_users=/etc/cron.d/
+fpm -t deb -n aws-ec2-ssh -v <VERSION_STAMP> -d bash -d openssh-server -d awscli --license mit -a all -m "<MAINTAINER>" --vendor "widdix GmbH" --url "https://cloudonaut.io/manage-aws-ec2-ssh-access-with-iam/" --description "Manage AWS EC2 SSH access with IAM" --after-install pkg/postinst --after-remove pkg/postrm --config-files /etc/aws-ec2-ssh.conf -s dir  import_users.sh=/usr/bin/ authorized_keys_command.sh=/usr/bin/ aws-ec2-ssh.conf=/etc/ pkg/import_users=/etc/cron.d/
 ```
 You can then have your nice shiny `.deb` available for use.
 
