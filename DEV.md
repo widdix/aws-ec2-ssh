@@ -13,7 +13,7 @@ $ regions=$(aws ec2 describe-regions --query "Regions[].RegionName" --output tex
 Default user: ec2-user
 
 ```
-$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=amzn-ami-hvm-2017.09.1.20180108-x86_64-gp2" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
+$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=amzn-ami-hvm-2017.09.1.20180115-x86_64-gp2" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
 ```
 
 ### RegionMapAmazonLinux2
@@ -21,7 +21,7 @@ $ for region in $regions; do ami=$(aws --region $region ec2 describe-images --fi
 Default user: ec2-user
 
 ```
-$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=amzn2-ami-hvm-2017.12.0.20171212.2-x86_64-gp2" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
+$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=amzn2-ami-hvm-2017.12.0.20180115-x86_64-gp2" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
 ```
 
 ### RegionMapUbuntu
@@ -29,7 +29,7 @@ $ for region in $regions; do ami=$(aws --region $region ec2 describe-images --fi
 Default user: ubuntu
 
 ```
-$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20171208" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
+$ for region in $regions; do ami=$(aws --region $region ec2 describe-images --filters "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20180109" --query "Images[0].ImageId" --output "text"); printf "'$region':\n  AMI: '$ami'\n"; done
 ```
 
 ### RegionMapSUSELinuxEnterpriseServer
