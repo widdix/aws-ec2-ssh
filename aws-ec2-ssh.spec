@@ -41,11 +41,72 @@ sed -i 's/DONOTSYNC=0/DONOTSYNC=1/g' ${RPM_BUILD_ROOT}%{_sysconfdir}/aws-ec2-ssh
 echo "*/10 * * * * root /usr/bin/import_users.sh" > ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
 chmod 0644 ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
 
+
 %post
-sed -i 's:#AuthorizedKeysCommand none:AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh:g' /etc/ssh/sshd_config
-sed -i 's:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
-/etc/init.d/sshd restart
-/sbin/service crond condrestart 2>&1 > /dev/null || :
+if grep -q '#AuthorizedKeysCommand none' /etc/ssh/sshd_config; then
+  sed -i "s:#AuthorizedKeysCommand none:AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh:g" /etc/ssh/sshd_config
+else
+  if ! grep -q "AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh" /etc/ssh/sshd_config; then
+    echo "AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh" >> /etc/ssh/sshd_config
+  fi
+fi
+if grep -q '#AuthorizedKeysCommandUser nobody' /etc/ssh/sshd_config; then
+  sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" /etc/ssh/sshd_config
+else
+  if ! grep -q 'AuthorizedKeysCommandUser nobody' /etc/ssh/sshd_config; then
+    echo "AuthorizedKeysCommandUser nobody" >> /etc/ssh/sshd_config
+  fi
+fi
+
+# In order to support SELinux in Enforcing mode, we need to tell SELinux that it
+# should have the nis_enabled boolean turned on (so it should expect login services
+# like PAM and sshd to make calls to get public keys from a remote server)
+#
+# This is observed on CentOS 7 and RHEL 7
+
+# Capture the return code and use that to determine if we have the command available
+retval=0
+which getenforce > /dev/null 2>&1 || retval=$?
+
+if [[ "$retval" -eq "0" ]]; then
+  retval=0
+  selinuxenabled || retval=$?
+  if [[ "$retval" -eq "0" ]]; then
+    setsebool -P nis_enabled on
+  fi
+fi
+
+# Restart sshd using an appropriate method based on the currently running init daemon
+# Note that systemd can return "running" or "degraded" (If a systemd unit has failed)
+# This was observed on the RHEL 7.3 AMI, so it's added for completeness
+# systemd is also not standardized in the name of the ssh service, nor in the places
+# where the unit files are stored.
+
+# Capture the return code and use that to determine if we have the command available
+retval=0
+which systemctl > /dev/null 2>&1 || retval=$?
+
+if [[ "$retval" -eq "0" ]]; then
+  if [[ (`systemctl is-system-running` =~ running) || (`systemctl is-system-running` =~ degraded) || (`systemctl is-system-running` =~ starting) ]]; then
+    if [ -f "/usr/lib/systemd/system/sshd.service" ] || [ -f "/lib/systemd/system/sshd.service" ]; then
+      systemctl restart sshd.service
+    else
+      systemctl restart ssh.service
+    fi
+  fi
+elif [[ `/sbin/init --version` =~ upstart ]]; then
+    if [ -f "/etc/init.d/sshd" ]; then
+      service sshd restart
+    else
+      service ssh restart
+    fi
+else
+  if [ -f "/etc/init.d/sshd" ]; then
+    /etc/init.d/sshd restart
+  else
+    /etc/init.d/ssh restart
+  fi
+fi
 
 echo "To configure the aws-ec2-ssh package, edit /etc/aws-ec-ssh.conf. No users will be synchronized before you did this."
 
@@ -54,7 +115,6 @@ echo "To configure the aws-ec2-ssh package, edit /etc/aws-ec-ssh.conf. No users 
 sed -i 's:AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh:#AuthorizedKeysCommand none:g' /etc/ssh/sshd_config
 sed -i 's:AuthorizedKeysCommandUser nobody:#AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
 /etc/init.d/sshd restart
-/sbin/service crond condrestart 2>&1 > /dev/null || :
 
 
 %clean
