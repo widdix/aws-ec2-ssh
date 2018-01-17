@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
+# check if AWS CLI exists
+if ! which aws; then
+    echo "aws executable not found - exiting!"
+    exit 1
+fi
+
 # source configuration if it exists
 [ -f /etc/aws-ec2-ssh.conf ] && . /etc/aws-ec2-ssh.conf
 
