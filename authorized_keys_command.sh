@@ -12,6 +12,13 @@ fi
 # instance you use this script runs in another.
 : ${ASSUMEROLE:=""}
 
+# Special group to mark users as being synced by our script
+: ${LOCAL_MARKER_GROUP:="iam-synced-users"}
+
+if ! getent group "${LOCAL_MARKER_GROUP}" | grep &>/dev/null "\b$1\b"; then
+  exit 1
+fi
+
 if [[ ! -z "${ASSUMEROLE}" ]]
 then
   STSCredentials=$(aws sts assume-role \
