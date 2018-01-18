@@ -28,10 +28,10 @@ Install import_users.sh and authorized_key_commands.
 EOF
 }
 
-SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
-AUTHORIZED_KEYS_COMMAND_FILE="/opt/authorized_keys_command.sh"
-IMPORT_USERS_SCRIPT_FILE="/opt/import_users.sh"
-MAIN_CONFIG_FILE="/etc/aws-ec2-ssh.conf"
+export SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
+export AUTHORIZED_KEYS_COMMAND_FILE="/opt/authorized_keys_command.sh"
+export IMPORT_USERS_SCRIPT_FILE="/opt/import_users.sh"
+export MAIN_CONFIG_FILE="/etc/aws-ec2-ssh.conf"
 
 IAM_GROUPS=""
 SUDO_GROUPS=""
@@ -80,6 +80,19 @@ do
     esac
 done
 
+export IAM_GROUPS
+export SUDO_GROUPS
+export LOCAL_GROUPS
+export ASSUME_ROLE
+export USERADD_PROGRAM
+export USERADD_ARGS
+
+# check if AWS CLI exists
+if ! which aws; then
+    echo "aws executable not found - exiting!"
+    exit 1
+fi
+
 tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
@@ -121,21 +134,9 @@ then
     echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> $MAIN_CONFIG_FILE
 fi
 
-if grep -q '#AuthorizedKeysCommand none' $SSHD_CONFIG_FILE; then
-    sed -i "s:#AuthorizedKeysCommand none:AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}:g" $SSHD_CONFIG_FILE
-else
-    if ! grep -q "AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}" $SSHD_CONFIG_FILE; then
-        echo "AuthorizedKeysCommand ${AUTHORIZED_KEYS_COMMAND_FILE}" >> $SSHD_CONFIG_FILE
-    fi
-fi
+./install_configure_selinux.sh
 
-if grep -q '#AuthorizedKeysCommandUser nobody' $SSHD_CONFIG_FILE; then
-    sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" $SSHD_CONFIG_FILE
-else
-    if ! grep -q 'AuthorizedKeysCommandUser nobody' $SSHD_CONFIG_FILE; then
-        echo "AuthorizedKeysCommandUser nobody" >> $SSHD_CONFIG_FILE
-    fi
-fi
+./install_configure_sshd.sh
 
 cat > /etc/cron.d/import_users << EOF
 SHELL=/bin/bash
@@ -148,53 +149,4 @@ chmod 0644 /etc/cron.d/import_users
 
 $IMPORT_USERS_SCRIPT_FILE
 
-# In order to support SELinux in Enforcing mode, we need to tell SELinux that it
-# should have the nis_enabled boolean turned on (so it should expect login services
-# like PAM and sshd to make calls to get public keys from a remote server)
-#
-# This is observed on CentOS 7 and RHEL 7
-
-# Capture the return code and use that to determine if we have the command available
-retval=0
-which getenforce > /dev/null 2>&1 || retval=$?
-
-if [[ "$retval" -eq "0" ]]; then
-  retval=0
-  selinuxenabled || retval=$?
-  if [[ "$retval" -eq "0" ]]; then
-    setsebool -P nis_enabled on
-  fi
-fi
-
-
-# Restart sshd using an appropriate method based on the currently running init daemon
-# Note that systemd can return "running" or "degraded" (If a systemd unit has failed)
-# This was observed on the RHEL 7.3 AMI, so it's added for completeness
-# systemd is also not standardized in the name of the ssh service, nor in the places
-# where the unit files are stored.
-
-# Capture the return code and use that to determine if we have the command available
-retval=0
-which systemctl > /dev/null 2>&1 || retval=$?
-
-if [[ "$retval" -eq "0" ]]; then
-  if [[ (`systemctl is-system-running` =~ running) || (`systemctl is-system-running` =~ degraded) || (`systemctl is-system-running` =~ starting) ]]; then
-    if [ -f "/usr/lib/systemd/system/sshd.service" ] || [ -f "/lib/systemd/system/sshd.service" ]; then
-      systemctl restart sshd.service
-    else
-      systemctl restart ssh.service
-    fi
-  fi
-elif [[ `/sbin/init --version` =~ upstart ]]; then
-    if [ -f "/etc/init.d/sshd" ]; then
-      service sshd restart
-    else
-      service ssh restart
-    fi
-else
-  if [ -f "/etc/init.d/sshd" ]; then
-    /etc/init.d/sshd restart
-  else
-    /etc/init.d/ssh restart
-  fi
-fi
+./install_restart_sshs.sh
