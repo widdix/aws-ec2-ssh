@@ -3,7 +3,9 @@ package de.widdix.awsec2ssh;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import org.junit.Test;
 
-public class TestShowcase extends ACloudFormationTest {
+public class TestShowcaseRPM extends ACloudFormationTest {
+
+    // TODO make Version parameter configurable via ENV variable
 
     @Test
     public void testCentOS() throws Exception {
