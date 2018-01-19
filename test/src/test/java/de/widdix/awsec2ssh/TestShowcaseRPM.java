@@ -14,12 +14,22 @@ public class TestShowcaseRPM extends ACloudFormationTest {
         try {
             final User user = this.createUser(userName);
             try {
-                this.createStack(stackName,
-                        "showcase-rpm.yaml",
-                        new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
-                        new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
-                        new Parameter().withParameterKey("OS").withParameterValue("CentOS")
-                );
+                if (Config.has(Config.Key.VERSION)) {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("CentOS"),
+                            new Parameter().withParameterKey("Version").withParameterValue(Config.get(Config.Key.VERSION))
+                    );
+                } else {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("CentOS")
+                    );
+                }
                 final String host = this.getStackOutputValue(stackName, "PublicName");
                 this.probeSSH(host, user);
             } finally {
@@ -37,12 +47,22 @@ public class TestShowcaseRPM extends ACloudFormationTest {
         try {
             final User user = this.createUser(userName);
             try {
-                this.createStack(stackName,
-                        "showcase-rpm.yaml",
-                        new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
-                        new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
-                        new Parameter().withParameterKey("OS").withParameterValue("RHEL")
-                );
+                if (Config.has(Config.Key.VERSION)) {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("RHEL"),
+                            new Parameter().withParameterKey("Version").withParameterValue(Config.get(Config.Key.VERSION))
+                    );
+                } else {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("RHEL")
+                    );
+                }
                 final String host = this.getStackOutputValue(stackName, "PublicName");
                 this.probeSSH(host, user);
             } finally {
@@ -60,12 +80,22 @@ public class TestShowcaseRPM extends ACloudFormationTest {
         try {
             final User user = this.createUser(userName);
             try {
-                this.createStack(stackName,
-                        "showcase-rpm.yaml",
-                        new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
-                        new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
-                        new Parameter().withParameterKey("OS").withParameterValue("SUSELinuxEnterpriseServer")
-                );
+                if (Config.has(Config.Key.VERSION)) {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("SUSELinuxEnterpriseServer"),
+                            new Parameter().withParameterKey("Version").withParameterValue(Config.get(Config.Key.VERSION))
+                    );
+                } else {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("SUSELinuxEnterpriseServer")
+                    );
+                }
                 final String host = this.getStackOutputValue(stackName, "PublicName");
                 this.probeSSH(host, user);
             } finally {
@@ -83,12 +113,22 @@ public class TestShowcaseRPM extends ACloudFormationTest {
         try {
             final User user = this.createUser(userName);
             try {
-                this.createStack(stackName,
-                        "showcase-rpm.yaml",
-                        new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
-                        new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
-                        new Parameter().withParameterKey("OS").withParameterValue("Ubuntu")
-                );
+                if (Config.has(Config.Key.VERSION)) {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("Ubuntu"),
+                            new Parameter().withParameterKey("Version").withParameterValue(Config.get(Config.Key.VERSION))
+                    );
+                } else {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("Ubuntu")
+                    );
+                }
                 final String host = this.getStackOutputValue(stackName, "PublicName");
                 this.probeSSH(host, user);
             } finally {
@@ -106,12 +146,22 @@ public class TestShowcaseRPM extends ACloudFormationTest {
         try {
             final User user = this.createUser(userName);
             try {
-                this.createStack(stackName,
-                        "showcase-rpm.yaml",
-                        new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
-                        new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
-                        new Parameter().withParameterKey("OS").withParameterValue("AmazonLinux2")
-                );
+                if (Config.has(Config.Key.VERSION)) {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("AmazonLinux2"),
+                            new Parameter().withParameterKey("Version").withParameterValue(Config.get(Config.Key.VERSION))
+                    );
+                } else {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("OS").withParameterValue("AmazonLinux2")
+                    );
+                }
                 final String host = this.getStackOutputValue(stackName, "PublicName");
                 this.probeSSH(host, user);
             } finally {
@@ -129,11 +179,20 @@ public class TestShowcaseRPM extends ACloudFormationTest {
         try {
             final User user = this.createUser(userName);
             try {
-                this.createStack(stackName,
-                        "showcase-rpm.yaml",
-                        new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
-                        new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId())
-                );
+                if (Config.has(Config.Key.VERSION)) {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
+                            new Parameter().withParameterKey("Version").withParameterValue(Config.get(Config.Key.VERSION))
+                    );
+                } else {
+                    this.createStack(stackName,
+                            "showcase-rpm.yaml",
+                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
+                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId())
+                    );
+                }
                 final String host = this.getStackOutputValue(stackName, "PublicName");
                 this.probeSSH(host, user);
             } finally {

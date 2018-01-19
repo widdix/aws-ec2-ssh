@@ -30,7 +30,7 @@ Parameters:
   Version:
     Description: 'See https://github.com/widdix/aws-ec2-ssh/releases for available versions'
     Type: String
-    Default: '1.6.0'
+    Default: '1.6.0-1'
 Mappings:
   OSMap:
     AmazonLinux:
@@ -372,7 +372,7 @@ Resources:
         install:
           packages:
             rpm:
-              aws-ec2-ssh: !Sub 'https://s3-eu-west-1.amazonaws.com/widdix-aws-ec2-ssh-releases-eu-west-1/aws-ec2-ssh-${Version}-1.el7.centos.noarch.rpm'
+              aws-ec2-ssh: !Sub 'https://s3-eu-west-1.amazonaws.com/widdix-aws-ec2-ssh-releases-eu-west-1/aws-ec2-ssh-${Version}.el7.centos.noarch.rpm'
           commands:
             a_enable:
               command: "sed -i 's/DONOTSYNC=1/DONOTSYNC=0/g' /etc/aws-ec2-ssh.conf && /usr/bin/import_users.sh"

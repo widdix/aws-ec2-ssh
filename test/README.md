@@ -11,6 +11,7 @@ If you run this tests, an AWS CloudFormation stack is created and **charges may 
 * `IAM_ROLE_ARN` if the tests should assume an IAM role before they run supply the ARN of the IAM role
 * `TEMPLATE_DIR` Load templates from local disk. Must end with an `/`.
 * `DELETION_POLICY` (default `delete`, allowed values [`delete`, `retain`]) should resources be deleted?
+* `VERSION` RPM version to test
 
 ## Usage
 
