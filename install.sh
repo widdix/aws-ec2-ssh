@@ -149,4 +149,4 @@ chmod 0644 /etc/cron.d/import_users
 
 $IMPORT_USERS_SCRIPT_FILE
 
-./install_restart_sshs.sh
+./install_restart_sshd.sh
