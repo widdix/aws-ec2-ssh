@@ -44,18 +44,14 @@ chmod 0644 ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
 
 %post
 %include install_configure_sshd.sh
-
 %include install_configure_selinux.sh
-
 %include install_restart_sshd.sh
-
 echo "To configure the aws-ec2-ssh package, edit /etc/aws-ec-ssh.conf. No users will be synchronized before you did this."
 
 
 %postun
 sed -i 's:AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh:#AuthorizedKeysCommand none:g' /etc/ssh/sshd_config
 sed -i 's:AuthorizedKeysCommandUser nobody:#AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
-
 %include install_restart_sshd.sh
 
 
