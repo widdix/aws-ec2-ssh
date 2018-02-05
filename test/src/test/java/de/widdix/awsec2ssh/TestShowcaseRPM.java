@@ -107,39 +107,6 @@ public class TestShowcaseRPM extends ACloudFormationTest {
     }
 
     @Test
-    public void testUbuntu() throws Exception {
-        final String stackName = "showcase-rpm-" + this.random8String();
-        final String userName = "user-" + this.random8String();
-        try {
-            final User user = this.createUser(userName);
-            try {
-                if (Config.has(Config.Key.VERSION)) {
-                    this.createStack(stackName,
-                            "showcase-rpm.yaml",
-                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
-                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
-                            new Parameter().withParameterKey("OS").withParameterValue("Ubuntu"),
-                            new Parameter().withParameterKey("Version").withParameterValue(Config.get(Config.Key.VERSION))
-                    );
-                } else {
-                    this.createStack(stackName,
-                            "showcase-rpm.yaml",
-                            new Parameter().withParameterKey("VPC").withParameterValue(this.getDefaultVPC().getVpcId()),
-                            new Parameter().withParameterKey("Subnet").withParameterValue(this.getDefaultSubnets().get(0).getSubnetId()),
-                            new Parameter().withParameterKey("OS").withParameterValue("Ubuntu")
-                    );
-                }
-                final String host = this.getStackOutputValue(stackName, "PublicName");
-                this.probeSSH(host, user);
-            } finally {
-                this.deleteStack(stackName);
-            }
-        } finally {
-            this.deleteUser(userName);
-        }
-    }
-
-    @Test
     public void testAmazonLinux2() throws Exception {
         final String stackName = "showcase-rpm-" + this.random8String();
         final String userName = "user-" + this.random8String();

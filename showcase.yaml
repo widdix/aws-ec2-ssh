@@ -264,7 +264,6 @@ Mappings:
 Conditions:
   UseCrossAccountIAM: !Not [!Equals [!Ref AssumeRole, '']]
   UseLocalIAM: !Equals [!Ref AssumeRole, '']
-  UseUbuntu: !Equals [!Ref OS, 'Ubuntu']
   HasKeyName: !Not [!Equals [!Ref KeyName, '']]
 Resources:
   SecurityGroup:

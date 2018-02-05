@@ -23,7 +23,6 @@ Parameters:
     AllowedValues:
     - AmazonLinux
     - AmazonLinux2
-    - Ubuntu
     - SUSELinuxEnterpriseServer
     - RHEL
     - CentOS
@@ -43,18 +42,6 @@ Mappings:
       UserData: |
         /opt/aws/bin/cfn-init --verbose --stack=${STACKNAME} --region=${REGION} --resource=Instance
         /opt/aws/bin/cfn-signal --exit-code $? --stack=${STACKNAME} --region=${REGION} --resource=Instance
-    Ubuntu:
-      RegionMap: RegionMapUbuntu
-      UserData: |
-        bash -ex << "TRY"
-          apt-get update
-          apt-get -y install python-setuptools
-          mkdir aws-cfn-bootstrap-latest
-          curl -s -m 60 https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz | tar xz -C aws-cfn-bootstrap-latest --strip-components 1
-          easy_install aws-cfn-bootstrap-latest
-          /usr/local/bin/cfn-init --verbose --stack=${STACKNAME} --region=${REGION} --resource=Instance
-        TRY
-        /usr/local/bin/cfn-signal --exit-code $? --stack=${STACKNAME} --region=${REGION} --resource=Instance
     SUSELinuxEnterpriseServer:
       RegionMap: RegionMapSUSELinuxEnterpriseServer
       UserData: |
@@ -147,37 +134,6 @@ Mappings:
       AMI: 'ami-4a787a2a'
     'us-west-2':
       AMI: 'ami-7f43f307'
-  RegionMapUbuntu:
-    'ap-south-1':
-      AMI: 'ami-5d055232'
-    'eu-west-3':
-      AMI: 'ami-5e0eb923'
-    'eu-west-2':
-      AMI: 'ami-d7aab2b3'
-    'eu-west-1':
-      AMI: 'ami-4d46d534'
-    'ap-northeast-2':
-      AMI: 'ami-67973709'
-    'ap-northeast-1':
-      AMI: 'ami-d39a02b5'
-    'sa-east-1':
-      AMI: 'ami-1157157d'
-    'ca-central-1':
-      AMI: 'ami-f0870294'
-    'ap-southeast-1':
-      AMI: 'ami-325d2e4e'
-    'ap-southeast-2':
-      AMI: 'ami-37df2255'
-    'eu-central-1':
-      AMI: 'ami-af79ebc0'
-    'us-east-1':
-      AMI: 'ami-41e0b93b'
-    'us-east-2':
-      AMI: 'ami-2581aa40'
-    'us-west-1':
-      AMI: 'ami-79aeae19'
-    'us-west-2':
-      AMI: 'ami-1ee65166'
   RegionMapSUSELinuxEnterpriseServer:
     'ap-south-1':
       AMI: 'ami-f7267298'
@@ -268,7 +224,6 @@ Mappings:
 Conditions:
   UseCrossAccountIAM: !Not [!Equals [!Ref AssumeRole, '']]
   UseLocalIAM: !Equals [!Ref AssumeRole, '']
-  UseUbuntu: !Equals [!Ref OS, 'Ubuntu']
   HasKeyName: !Not [!Equals [!Ref KeyName, '']]
 Resources:
   SecurityGroup:
@@ -347,11 +302,6 @@ Resources:
           packages:
             yum:
               git: []
-        prepareUbuntu:
-          packages:
-            apt:
-              git: []
-              awscli: []
         prepareSUSELinuxEnterpriseServer: {}
         prepareRHEL:
           packages:
