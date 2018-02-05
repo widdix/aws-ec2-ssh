@@ -54,7 +54,7 @@ A picture is worth a thousand words:
    4. Click the **Upload SSH public key** button at the bottom of the page
    5. Paste your public SSH key into the text-area and click the **Upload SSH public key** button to save
 2. Attach the IAM permissions defined in [`iam_ssh_policy.json`](./iam_ssh_policy.json) to the EC2 instances (by creating an IAM role and an Instance Profile)
-3. Install the RPM<sup>1</sup>: `rpm -i https://s3-eu-west-1.amazonaws.com/widdix-aws-ec2-ssh-releases-eu-west-1/aws-ec2-ssh-1.5.0-1.el7.centos.noarch.rpm`
+3. Install the RPM<sup>1</sup>: `rpm -i https://s3-eu-west-1.amazonaws.com/widdix-aws-ec2-ssh-releases-eu-west-1/aws-ec2-ssh-1.7.0-1.el7.centos.noarch.rpm`
 4. The configuration file is placed into `/etc/aws-ec2-ssh.conf`
 5. The RPM creates a crontab file to run import_users.sh every 10 minutes. This file is placed in `/etc/cron.d/import_users`
 
