@@ -330,7 +330,7 @@ Resources:
         'Fn::Base64': !Sub
           - |
               #!/bin/bash -ex
-              /opt/aws/bin/cfn-signal -e 1 --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance
+              trap '/opt/aws/bin/cfn-signal -e 1 --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance' ERR
               export REGION=${AWS::Region}
               export STACKNAME=${AWS::StackName}
               ${UserData}
