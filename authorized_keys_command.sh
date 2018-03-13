@@ -39,6 +39,17 @@ UnsaveUserName=${UnsaveUserName//".equal."/"="}
 UnsaveUserName=${UnsaveUserName//".comma."/","}
 UnsaveUserName=${UnsaveUserName//".at."/"@"}
 
-aws iam list-ssh-public-keys --user-name "$UnsaveUserName" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read -r KeyId; do
-  aws iam get-ssh-public-key --user-name "$UnsaveUserName" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
-done
+if [ -z "${S3_PATH}" ]; then
+    aws iam list-ssh-public-keys --user-name "$UnsaveUserName" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read -r KeyId; do
+      aws iam get-ssh-public-key --user-name "$UnsaveUserName" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
+    done
+else
+    KeyDir="${S3_PATH}/${UnsaveUserName}"
+    tmpdir=$(mktemp -d)
+    aws s3 sync ${KeyDir} ${tmpdir} > /dev/null 2>&1
+    pushd ${tmpdir} > /dev/null 2>&1
+    for key in $(ls ${tmpdir}); do
+        cat "$key"
+    done
+    popd > /dev/null 2>&1
+fi
