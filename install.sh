@@ -105,7 +105,7 @@ tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
-git clone -b auth_from_s3 https://github.com/brg-liuwei/aws-ec2-ssh.git
+git clone -b master https://github.com/brg-liuwei/aws-ec2-ssh.git
 
 cd "$tmpdir/aws-ec2-ssh"
 
