@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+set -x
+
 show_help() {
 cat << EOF
 Usage: ${0##*/} [-hv] [-a ARN] [-i GROUP,GROUP,...] [-l GROUP,GROUP,...] [-s GROUP] [-p PROGRAM] [-u "ARGUMENTS"]
@@ -23,6 +25,7 @@ Install import_users.sh and authorized_key_commands.
                        Defaults to '/usr/sbin/useradd'
     -u "useradd args"  Specify arguments to use with useradd.
                        Defaults to '--create-home --shell /bin/bash'
+    -f s3_path         Get public keys from S3 instead of IAM
 
 
 EOF
@@ -39,8 +42,9 @@ LOCAL_GROUPS=""
 ASSUME_ROLE=""
 USERADD_PROGRAM=""
 USERADD_ARGS=""
+S3_PATH=""
 
-while getopts :hva:i:l:s: opt
+while getopts :hva:i:l:s:f: opt
 do
     case $opt in
         h)
@@ -68,6 +72,9 @@ do
         u)
             USERADD_ARGS="$OPTARG"
             ;;
+        f)
+            S3_PATH="$OPTARG"
+            ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
             show_help
@@ -86,6 +93,7 @@ export LOCAL_GROUPS
 export ASSUME_ROLE
 export USERADD_PROGRAM
 export USERADD_ARGS
+export S3_PATH
 
 # check if AWS CLI exists
 if ! which aws; then
@@ -97,7 +105,7 @@ tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
-git clone -b master https://github.com/widdix/aws-ec2-ssh.git
+git clone -b master https://github.com/brg-liuwei/aws-ec2-ssh.git
 
 cd "$tmpdir/aws-ec2-ssh"
 
@@ -106,7 +114,7 @@ cp import_users.sh $IMPORT_USERS_SCRIPT_FILE
 
 if [ "${IAM_GROUPS}" != "" ]
 then
-    echo "IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"" >> $MAIN_CONFIG_FILE
+    echo "IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"" > $MAIN_CONFIG_FILE
 fi
 
 if [ "${SUDO_GROUPS}" != "" ]
@@ -133,6 +141,14 @@ if [ "${USERADD_ARGS}" != "" ]
 then
     echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> $MAIN_CONFIG_FILE
 fi
+
+if [ "${S3_PATH}" != "" ]
+then
+    echo "S3_PATH=\"${S3_PATH}\"" >> $MAIN_CONFIG_FILE
+fi
+
+AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" '{print $4}')
+echo "AWS_REGION=\"${AWS_REGION}\"" >> $MAIN_CONFIG_FILE
 
 ./install_configure_selinux.sh
 
