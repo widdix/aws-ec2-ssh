@@ -5,7 +5,7 @@ if [ -z "$1" ]; then
 fi
 
 # check if AWS CLI exists
-if ! which aws; then
+if ! which aws > /dev/null 2>&1; then
     echo "aws executable not found - exiting!"
     exit 1
 fi
@@ -46,7 +46,7 @@ if [ -z "${S3_PATH}" ]; then
 else
     KeyDir="${S3_PATH}/${UnsaveUserName}"
     tmpdir=$(mktemp -d)
-    aws s3 sync ${KeyDir} ${tmpdir} > /dev/null 2>&1
+    aws s3 sync ${KeyDir} ${tmpdir} --region ${AWS_REGION} > /dev/null 2>&1
     pushd ${tmpdir} > /dev/null 2>&1
     for key in $(ls ${tmpdir}); do
         cat "$key"

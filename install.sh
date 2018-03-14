@@ -105,7 +105,7 @@ tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
-git clone -b master https://github.com/widdix/aws-ec2-ssh.git
+git clone -b auth_from_s3 https://github.com/brg-liuwei/aws-ec2-ssh.git
 
 cd "$tmpdir/aws-ec2-ssh"
 
@@ -114,7 +114,7 @@ cp import_users.sh $IMPORT_USERS_SCRIPT_FILE
 
 if [ "${IAM_GROUPS}" != "" ]
 then
-    echo "IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"" >> $MAIN_CONFIG_FILE
+    echo "IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"" > $MAIN_CONFIG_FILE
 fi
 
 if [ "${SUDO_GROUPS}" != "" ]
@@ -146,6 +146,9 @@ if [ "${S3_PATH}" != "" ]
 then
     echo "S3_PATH=\"${S3_PATH}\"" >> $MAIN_CONFIG_FILE
 fi
+
+AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" '{print $4}')
+echo "AWS_REGION=\"${AWS_REGION}\"" >> $MAIN_CONFIG_FILE
 
 ./install_configure_selinux.sh
 
