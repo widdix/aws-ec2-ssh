@@ -92,6 +92,13 @@ This solution will use the following mapping for those special characters when c
 
 So instead of `name@email.com` you will need to use `name.at.email.com` when login via SSH.
 
+
+Optionally, set `STRIP_EMAILS_FROM_USERNAME=1` in the config file, in which case `user.name@email.com` will become simply `user.name`.
+
+Note that to reverse-engineer the remainder of the username, we look up the IAM users via the cli. This means usernames must be unique, exclusive of the email domain.
+E.g. `my.user@email.com` and `my.user@anotherEmail.com` will not be differentiated and will not be able to use this method.
+
+
 Linux user names may only be up to 32 characters long.
 
 ## Configuration

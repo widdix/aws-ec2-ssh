@@ -33,12 +33,23 @@ then
   export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
 fi
 
-UnsaveUserName="$1"
-UnsaveUserName=${UnsaveUserName//".plus."/"+"}
-UnsaveUserName=${UnsaveUserName//".equal."/"="}
-UnsaveUserName=${UnsaveUserName//".comma."/","}
-UnsaveUserName=${UnsaveUserName//".at."/"@"}
+raw_username="$1"
+raw_username=${raw_username//".plus."/"+"}
+raw_username=${raw_username//".equal."/"="}
+raw_username=${raw_username//".comma."/","}
 
-aws iam list-ssh-public-keys --user-name "$UnsaveUserName" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read -r KeyId; do
-  aws iam get-ssh-public-key --user-name "$UnsaveUserName" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
+if [ "${STRIP_EMAILS_FROM_USERNAME}" -eq 1 ]; then
+    iam_username=$(aws iam list-users --query "Users[*].[UserName]" --output text | fgrep "$raw_username@")
+
+    if [ $(echo "${iam_username}" | wc -w) -gt 1 ]; then
+        echo "Multiple IAM users matched: - exiting!"
+        echo "${iam_username}"
+        exit 2
+    fi
+else
+    iam_username=${raw_username//".at."/"@"}
+fi
+
+aws iam list-ssh-public-keys --user-name "${iam_username}" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read -r KeyId; do
+  aws iam get-ssh-public-key --user-name "${iam_username}" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
 done
