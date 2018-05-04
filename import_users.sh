@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 # check if AWS CLI exists
-if ! which aws; then
+if ! [ -x "$(which aws)" ]; then
     echo "aws executable not found - exiting!"
     exit 1
 fi
