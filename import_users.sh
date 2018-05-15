@@ -5,7 +5,7 @@ function log() {
 }
 
 # check if AWS CLI exists
-if ! which aws; then
+if ! [ -x "$(which aws)" ]; then
     log "aws executable not found - exiting!"
     exit 1
 fi
