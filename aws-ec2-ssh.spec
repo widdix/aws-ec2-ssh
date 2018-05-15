@@ -46,7 +46,7 @@ chmod 0644 ${RPM_BUILD_ROOT}%{_sysconfdir}/cron.d/import_users
 %include install_configure_sshd.sh
 %include install_configure_selinux.sh
 %include install_restart_sshd.sh
-echo "To configure the aws-ec2-ssh package, edit /etc/aws-ec-ssh.conf. No users will be synchronized before you did this."
+echo "To configure the aws-ec2-ssh package, edit /etc/aws-ec2-ssh.conf. No users will be synchronized before you did this."
 
 
 %postun
