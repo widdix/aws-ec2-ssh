@@ -250,11 +250,16 @@ function sync_accounts() {
     get_sudoers_groups_from_tag
 
     iam_users=$(get_clean_iam_users | sort | uniq)
-    sudo_users=$(get_clean_sudoers_users | sort | uniq)
-
-    if [[ -z "${iam_users}" ]] && [[ -z "${sudo_users}" ]]
+    if [[ -z "${iam_users}" ]]
     then
-      log "we just got back an empty iam_users and sudo_users user list which is likely caused by an IAM outage!"
+      log "we just got back an empty iam_users user list which is likely caused by an IAM outage!"
+      exit 1
+    fi
+
+    sudo_users=$(get_clean_sudoers_users | sort | uniq)
+    if [[ ! -z "${SUDOERS_GROUPS}" ]] && [[ ! "${SUDOERS_GROUPS}" == "##ALL##" ]] && [[ -z "${sudo_users}" ]]
+    then
+      log "we just got back an empty sudo_users user list which is likely caused by an IAM outage!"
       exit 1
     fi
 
