@@ -396,10 +396,10 @@ Resources:
       Tags:
       - Key: Name
         Value: 'AWS EC2 SSH access with IAM showcase'
-    #CreationPolicy:
-    #  ResourceSignal:
-    #    Count: 1
-    #    Timeout: PT15M
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT15M
 Outputs:
   PublicName:
     Description: 'The public name of the EC2 instance.'
