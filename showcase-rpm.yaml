@@ -35,16 +35,19 @@ Mappings:
     AmazonLinux:
       RegionMap: RegionMapAmazonLinux
       UserData: |
+        trap '/opt/aws/bin/cfn-signal -e 1 --stack=${STACKNAME} --region=${REGION} --resource=Instance' ERR
         /opt/aws/bin/cfn-init --verbose --stack=${STACKNAME} --region=${REGION} --resource=Instance
         /opt/aws/bin/cfn-signal -e 0 --stack=${STACKNAME} --region=${REGION} --resource=Instance
     AmazonLinux2:
       RegionMap: RegionMapAmazonLinux2
       UserData: |
+        trap '/opt/aws/bin/cfn-signal -e 1 --stack=${STACKNAME} --region=${REGION} --resource=Instance' ERR
         /opt/aws/bin/cfn-init --verbose --stack=${STACKNAME} --region=${REGION} --resource=Instance
         /opt/aws/bin/cfn-signal -e 0 --stack=${STACKNAME} --region=${REGION} --resource=Instance
     SUSELinuxEnterpriseServer:
       RegionMap: RegionMapSUSELinuxEnterpriseServer
       UserData: |
+        trap '/usr/bin/cfn-signal -e 1 --stack=${STACKNAME} --region=${REGION} --resource=Instance' ERR
         mkdir aws-cfn-bootstrap-latest
         curl -s -m 60 https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz | tar xz -C aws-cfn-bootstrap-latest --strip-components 1
         easy_install aws-cfn-bootstrap-latest
@@ -53,6 +56,7 @@ Mappings:
     RHEL:
       RegionMap: RegionMapRHEL
       UserData: |
+        trap '/bin/cfn-signal -e 1 --stack=${STACKNAME} --region=${REGION} --resource=Instance' ERR
         mkdir aws-cfn-bootstrap-latest
         curl -s -m 60 https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz | tar xz -C aws-cfn-bootstrap-latest --strip-components 1
         easy_install aws-cfn-bootstrap-latest
@@ -61,6 +65,7 @@ Mappings:
     CentOS:
       RegionMap: RegionMapCentOS
       UserData: |
+        trap '/bin/cfn-signal -e 1 --stack=${STACKNAME} --region=${REGION} --resource=Instance' ERR
         mkdir aws-cfn-bootstrap-latest
         curl -s -m 60 https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz | tar xz -C aws-cfn-bootstrap-latest --strip-components 1
         easy_install aws-cfn-bootstrap-latest
@@ -299,13 +304,19 @@ Resources:
         prepareSUSELinuxEnterpriseServer: {}
         prepareRHEL:
           packages:
-            rpm:
-              epel: 'http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
             yum:
               git: []
-              python2-pip: []
-            python:
-              awscli: []
+              unzip: []
+          commands:
+            a_download:
+              command: 'curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"'
+              cwd: '/tmp'
+            b_extract:
+              command: 'unzip awscli-bundle.zip'
+              cwd: '/tmp'
+            c_install:
+              command: './awscli-bundle/install -i /usr/local/aws -b /bin/aws'
+              cwd: '/tmp'
         prepareCentOS:
           packages:
             rpm:
@@ -330,7 +341,6 @@ Resources:
         'Fn::Base64': !Sub
           - |
               #!/bin/bash -ex
-              trap '/opt/aws/bin/cfn-signal -e 1 --stack=${AWS::StackName} --region=${AWS::Region} --resource=Instance' ERR
               export REGION=${AWS::Region}
               export STACKNAME=${AWS::StackName}
               ${UserData}
