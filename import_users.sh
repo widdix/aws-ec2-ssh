@@ -99,11 +99,13 @@ function get_iam_users() {
         | sed "s/\r//g"
     else
         for group in $(echo ${IAM_AUTHORIZED_GROUPS} | tr "," " "); do
-            aws iam get-group \
+            if ! aws iam get-group \
                 --group-name "${group}" \
                 --query "Users[].[UserName]" \
-                --output text \
-            | sed "s/\r//g"
+                --output text;
+            then
+                continue;
+            fi
         done
     fi
 }
@@ -142,10 +144,13 @@ function get_sudoers_users() {
 
     [[ -z "${SUDOERS_GROUPS}" ]] || [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] ||
         for group in $(echo "${SUDOERS_GROUPS}" | tr "," " "); do
-            aws iam get-group \
+            if ! aws iam get-group \
                 --group-name "${group}" \
                 --query "Users[].[UserName]" \
-                --output text
+                --output text;
+            then
+                continue;
+            fi
         done
 }
 
