@@ -17,6 +17,11 @@ if grep -aq 'AuthorizedKeysCommandUser' "$SSHD_CONFIG_FILE"; then
     fi
   fi
 else
-  echo 'AuthorizedKeysCommandUser not supported in sshd_config'
-  exit 1
+  if grep -q '#AuthorizedKeysCommandRunAs nobody' "$SSHD_CONFIG_FILE"; then
+    sed -i "s:#AuthorizedKeysCommandRunAs nobody:AuthorizedKeysCommandRunAs nobody:g" "$SSHD_CONFIG_FILE"
+  else
+    if ! grep -q 'AuthorizedKeysCommandRunAs nobody' "$SSHD_CONFIG_FILE"; then
+      echo "AuthorizedKeysCommandRunAs nobody" >> "$SSHD_CONFIG_FILE"
+    fi
+  fi
 fi

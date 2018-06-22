@@ -14,6 +14,27 @@ if [[ "$retval" -eq "0" ]]; then
   retval=0
   selinuxenabled || retval=$?
   if [[ "$retval" -eq "0" ]]; then
-    setsebool -P nis_enabled on
+    if ! setsebool -P nis_enabled on; then
+      if which checkmodule > /dev/null 2>&1; then
+        tmpdir="$(mktemp -d)"
+
+        cat <<EOF > "$tmpdir/aws-ec2-ssh.te"
+module mypol 1.0;
+
+require {
+    type sshd_t;
+    type usr_t;
+    class file { execute execute_no_trans };
+}
+
+#============= sshd_t ==============
+allow sshd_t usr_t:file { execute execute_no_trans };
+EOF
+        checkmodule -M -m -o "$tmpdir/aws-ec2-ssh.mod" "$tmpdir/aws-ec2-ssh.te"  > /dev/null 2>&1
+        semodule_package -o "$tmpdir/aws-ec2-ssh.pp" -m "$tmpdir/aws-ec2-ssh.mod"  > /dev/null 2>&1
+        semodule -i "$tmpdir/aws-ec2-ssh.pp"  > /dev/null 2>&1
+        rm -rf "$tmpdir"
+      fi
+    fi
   fi
 fi
