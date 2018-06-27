@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 # In order to support SELinux in Enforcing mode, we need to tell SELinux that it
 # should have the nis_enabled boolean turned on (so it should expect login services

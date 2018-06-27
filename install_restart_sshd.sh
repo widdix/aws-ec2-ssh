@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 # Restart sshd using an appropriate method based on the currently running init daemon
 # Note that systemd can return "running" or "degraded" (If a systemd unit has failed)

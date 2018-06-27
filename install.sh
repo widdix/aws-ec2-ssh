@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 show_help() {
 cat << EOF
@@ -136,9 +138,7 @@ fi
 
 ./install_configure_selinux.sh
 
-if ! ./install_configure_sshd.sh; then
-    exit 1
-fi
+./install_configure_sshd.sh
 
 cat > /etc/cron.d/import_users << EOF
 SHELL=/bin/bash
