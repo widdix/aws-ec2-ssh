@@ -2,7 +2,7 @@
 
 show_help() {
 cat << EOF
-Usage: ${0##*/} [-hv] [-a ARN] [-i GROUP,GROUP,...] [-l GROUP,GROUP,...] [-s GROUP] [-p PROGRAM] [-u "ARGUMENTS"]
+Usage: ${0##*/} [-hv] [-a ARN] [-i GROUP,GROUP,...] [-l GROUP,GROUP,...] [-s GROUP] [-p PROGRAM] [-u "ARGUMENTS"] [-r RELEASE]
 Install import_users.sh and authorized_key_commands.
 
     -h                 display this help and exit
@@ -23,6 +23,9 @@ Install import_users.sh and authorized_key_commands.
                        Defaults to '/usr/sbin/useradd'
     -u "useradd args"  Specify arguments to use with useradd.
                        Defaults to '--create-home --shell /bin/bash'
+    -r release         Specify a release of aws-ec2-ssh to download from GitHub. This argument is
+                       passed to \`git clone -b\` and so works with branches and tags.
+                       Defaults to 'master'
 
 
 EOF
@@ -39,8 +42,9 @@ LOCAL_GROUPS=""
 ASSUME_ROLE=""
 USERADD_PROGRAM=""
 USERADD_ARGS=""
+RELEASE="master"
 
-while getopts :hva:i:l:s: opt
+while getopts :hva:i:l:s:p:u:r: opt
 do
     case $opt in
         h)
@@ -67,6 +71,9 @@ do
             ;;
         u)
             USERADD_ARGS="$OPTARG"
+            ;;
+        r)
+            RELEASE="$OPTARG"
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -97,7 +104,7 @@ tmpdir=$(mktemp -d)
 
 cd "$tmpdir"
 
-git clone -b master https://github.com/widdix/aws-ec2-ssh.git
+git clone -b "$RELEASE" https://github.com/widdix/aws-ec2-ssh.git
 
 cd "$tmpdir/aws-ec2-ssh"
 
