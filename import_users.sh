@@ -5,18 +5,19 @@ function log() {
 }
 
 # check if AWS CLI exists
-if ! [ -x "$(which aws)" ]; then
+if ! [[ -x "$(which aws)" ]]
+then
     log "aws executable not found - exiting!"
     exit 1
 fi
 
 # source configuration if it exists
-[ -f /etc/aws-ec2-ssh.conf ] && . /etc/aws-ec2-ssh.conf
+[[ -f /etc/aws-ec2-ssh.conf ]] && source /etc/aws-ec2-ssh.conf
 
 # Should we actually do something?
 : ${DONOTSYNC:=0}
 
-if [ ${DONOTSYNC} -eq 1 ]
+if [[ ${DONOTSYNC} -eq 1 ]]
 then
     log "Please configure aws-ec2-ssh by editing /etc/aws-ec2-ssh.conf"
     exit 1
@@ -78,9 +79,9 @@ function setup_aws_credentials() {
 
 # Get list of iam groups from tag
 function get_iam_groups_from_tag() {
-    if [ "${IAM_AUTHORIZED_GROUPS_TAG}" ]
+    if [[ "${IAM_AUTHORIZED_GROUPS_TAG}" ]]
     then
-        IAM_AUTHORIZED_GROUPS=$(\
+        IAM_AUTHORIZED_GROUPS=$(
             aws --region $REGION ec2 describe-tags \
             --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$IAM_AUTHORIZED_GROUPS_TAG" \
             --query "Tags[0].Value" --output text \
@@ -91,7 +92,7 @@ function get_iam_groups_from_tag() {
 # Get all IAM users (optionally limited by IAM groups)
 function get_iam_users() {
     local group
-    if [ -z "${IAM_AUTHORIZED_GROUPS}" ]
+    if [[ -z "${IAM_AUTHORIZED_GROUPS}" ]]
     then
         aws iam list-users \
             --query "Users[].[UserName]" \
@@ -126,9 +127,9 @@ function get_local_users() {
 
 # Get list of IAM groups marked with sudo access from tag
 function get_sudoers_groups_from_tag() {
-    if [ "${SUDOERS_GROUPS_TAG}" ]
+    if [[ "${SUDOERS_GROUPS_TAG}" ]]
     then
-        SUDOERS_GROUPS=$(\
+        SUDOERS_GROUPS=$(
             aws --region $REGION ec2 describe-tags \
             --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$SUDOERS_GROUPS_TAG" \
             --query "Tags[0].Value" --output text \
@@ -175,7 +176,7 @@ function create_or_update_local_user() {
         exit 1
     fi
 
-    if [ ! -z "${LOCAL_GROUPS}" ]
+    if [[ ! -z "${LOCAL_GROUPS}" ]]
     then
         localusergroups="${LOCAL_GROUPS},${LOCAL_MARKER_GROUP}"
     fi
@@ -190,8 +191,9 @@ function create_or_update_local_user() {
     # Should we add this user to sudo ?
     if [[ ! -z "${SUDOERS_GROUPS}" ]]
     then
+        # sudo will ignore file names that contain a ‘.’, so we remove those here:
         SaveUserFileName=$(echo "${username}" | tr "." " ")
-        SaveUserSudoFilePath="/etc/sudoers.d/$SaveUserFileName"
+        SaveUserSudoFilePath="/etc/sudoers.d/${SaveUserFileName}"
         if [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] || echo "${sudousers}" | grep "^${username}\$" > /dev/null
         then
             echo "${username} ALL=(ALL) NOPASSWD:ALL" > "${SaveUserSudoFilePath}"
