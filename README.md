@@ -102,12 +102,12 @@ one or more of the following lines:
 ```
 ASSUMEROLE="IAM-role-arn"                      # IAM Role ARN for multi account. See below for more info
 IAM_AUTHORIZED_GROUPS="GROUPNAMES"             # Comma separated list of IAM groups to import
-SUDOERS_GROUPS="GROUPNAMES"                    # Comma seperated list of IAM groups that should have sudo access or `##ALL##` to allow all users
+SUDOERS_GROUPS="GROUPNAMES"                    # Comma separated list of IAM groups that should have sudo access or `##ALL##` to allow all users
 IAM_AUTHORIZED_GROUPS_TAG="KeyTag"             # Key Tag of EC2 that contains a Comma separated list of IAM groups to import - IAM_AUTHORIZED_GROUPS_TAG will override IAM_AUTHORIZED_GROUPS, you can use only one of them 
 SUDOERS_GROUPS_TAG="KeyTag"                    # Key Tag of EC2 that contains a Comma separated list of IAM groups that should have sudo access - SUDOERS_GROUPS_TAG will override SUDOERS_GROUPS, you can use only one of them
 SUDOERSGROUP="GROUPNAME"                       # Deprecated! IAM group that should have sudo access. Please use SUDOERS_GROUPS as this variable will be removed in future release.
 LOCAL_MARKER_GROUP="iam-synced-users"          # Dedicated UNIX group to mark imported users. Used for deleting removed IAM users
-LOCAL_GROUPS="GROUPNAMES"                      # Comma seperated list of UNIX groups to add the users in
+LOCAL_GROUPS="GROUPNAMES"                      # Comma separated list of UNIX groups to add the users in
 USERADD_PROGRAM="/usr/sbin/useradd"            # The useradd program to use. defaults to `/usr/sbin/useradd`
 USERADD_ARGS="--create-home --shell /bin/bash" # Arguments for the useradd program. defaults to `--create-home --shell /bin/bash`
 ```
