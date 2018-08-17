@@ -6,5 +6,9 @@
     "Resource": [
       "arn:aws:iam::<YOUR_USERS_ACCOUNT_ID_HERE>:role/<YOUR_USERS_ACCOUNT_ROLE_NAME_HERE>"
     ]
+  },{
+    "Effect": "Allow",
+    "Action": "ec2:DescribeTags",
+    "Resource": "*"
   }]
 }
