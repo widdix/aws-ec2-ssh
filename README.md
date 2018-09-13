@@ -1,5 +1,7 @@
 # Manage AWS EC2 SSH access with IAM
 
+> You might want to checkout the newly launched [AWS Systems Manager Session Manager for Shell Access to EC2 Instances](https://aws.amazon.com/de/blogs/aws/new-session-manager/)
+
 Use your IAM user's public SSH key to get access via SSH to an **EC2 instance** running
 * Amazon Linux 2017.09
 * Amazon Linux 2 2017.12
