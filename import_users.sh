@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 function log() {
     /usr/bin/logger -i -p auth.info -t aws-ec2-ssh "$@"
