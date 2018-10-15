@@ -143,7 +143,9 @@ fi
 
 ./install_configure_selinux.sh
 
-./install_configure_sshd.sh
+if ! ./install_configure_sshd.sh; then
+    exit 1
+fi
 
 cat > /etc/cron.d/import_users << EOF
 SHELL=/bin/bash

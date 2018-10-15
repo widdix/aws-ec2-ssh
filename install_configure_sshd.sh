@@ -8,10 +8,20 @@ else
   fi
 fi
 
-if grep -q '#AuthorizedKeysCommandUser nobody' "$SSHD_CONFIG_FILE"; then
-  sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" "$SSHD_CONFIG_FILE"
+if grep -aq 'AuthorizedKeysCommandUser' "$SSHD_CONFIG_FILE"; then
+  if grep -q '#AuthorizedKeysCommandUser nobody' "$SSHD_CONFIG_FILE"; then
+    sed -i "s:#AuthorizedKeysCommandUser nobody:AuthorizedKeysCommandUser nobody:g" "$SSHD_CONFIG_FILE"
+  else
+    if ! grep -q 'AuthorizedKeysCommandUser nobody' "$SSHD_CONFIG_FILE"; then
+      echo "AuthorizedKeysCommandUser nobody" >> "$SSHD_CONFIG_FILE"
+    fi
+  fi
 else
-  if ! grep -q 'AuthorizedKeysCommandUser nobody' "$SSHD_CONFIG_FILE"; then
-    echo "AuthorizedKeysCommandUser nobody" >> "$SSHD_CONFIG_FILE"
+  if grep -q '#AuthorizedKeysCommandRunAs nobody' "$SSHD_CONFIG_FILE"; then
+    sed -i "s:#AuthorizedKeysCommandRunAs nobody:AuthorizedKeysCommandRunAs nobody:g" "$SSHD_CONFIG_FILE"
+  else
+    if ! grep -q 'AuthorizedKeysCommandRunAs nobody' "$SSHD_CONFIG_FILE"; then
+      echo "AuthorizedKeysCommandRunAs nobody" >> "$SSHD_CONFIG_FILE"
+    fi
   fi
 fi
