@@ -14,9 +14,6 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,17 +39,6 @@ public abstract class AAWSTest extends ATest {
         this.iam = AmazonIdentityManagementClientBuilder.standard().withCredentials(this.credentialsProvider).build();
     }
 
-    public static final class User {
-        public final String userName;
-        public final byte[] sshPrivateKeyBlob;
-        public final String sshPublicKeyId;
-        public User(final String userName, final byte[] sshPrivateKeyBlob, final String sshPublicKeyId) {
-            super();
-            this.userName = userName;
-            this.sshPrivateKeyBlob = sshPrivateKeyBlob;
-            this.sshPublicKeyId = sshPublicKeyId;
-        }
-    }
     protected final User createUser(final String userName) throws JSchException {
         final JSch jsch = new JSch();
         final KeyPair keyPair = KeyPair.genKeyPair(jsch, KeyPair.RSA, 2048);

@@ -100,6 +100,12 @@ if ! [ -x "$(which aws)" ]; then
     exit 1
 fi
 
+# check if git exists
+if ! [ -x "$(which git)" ]; then
+    echo "git executable not found - exiting!"
+    exit 1
+fi
+
 tmpdir=$(mktemp -d)
 
 cd "$tmpdir"

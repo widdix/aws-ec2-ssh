@@ -33,7 +33,19 @@ public abstract class ATest {
         return (T) results.getResult();
     }
 
-    protected final void probeSSH(final String host, final AAWSTest.User user) {
+    public static final class User {
+        public final String userName;
+        public final byte[] sshPrivateKeyBlob;
+        public final String sshPublicKeyId;
+        public User(final String userName, final byte[] sshPrivateKeyBlob, final String sshPublicKeyId) {
+            super();
+            this.userName = userName;
+            this.sshPrivateKeyBlob = sshPrivateKeyBlob;
+            this.sshPublicKeyId = sshPublicKeyId;
+        }
+    }
+
+    protected final void probeSSH(final String host, final User user) {
         final Callable<Boolean> callable = () -> {
             final JSch jsch = new JSch();
             final Session session = jsch.getSession(user.userName, host);
