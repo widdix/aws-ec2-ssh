@@ -39,7 +39,18 @@ raw_username=${raw_username//".equal."/"="}
 raw_username=${raw_username//".comma."/","}
 
 if [ "${STRIP_EMAILS_FROM_USERNAME}" -eq 1 ]; then
-    iam_username=$(aws iam list-users --query "Users[*].[UserName]" --output text | fgrep "$raw_username@")
+    list_users=$(aws iam list-users --max-items 50 --output text)
+    token=$(echo "$list_users" | grep ^NEXTTOKEN| awk '{print $2}')
+    all_users=$(echo "$list_users" | grep ^USERS | awk '{print $2}' | cut -d"/" -f2)
+
+    while [ -n "$token"  ]; do
+        list_users=$(aws iam list-users --max-items 50 --starting-token $token --output text)
+        token=$(echo "$list_users" | grep ^NEXTTOKEN| awk '{print $2}')
+        new_users=$(echo "$list_users" | grep ^USERS | awk '{print $2}' | cut -d"/" -f2)
+        all_users="${all_users}"$'\n'"${new_users}"
+    done
+
+    iam_username=$(echo "$all_users" | fgrep "$raw_username@")
 
     if [ $(echo "${iam_username}" | wc -w) -gt 1 ]; then
         echo "Multiple IAM users matched: - exiting!"
@@ -51,5 +62,5 @@ else
 fi
 
 aws iam list-ssh-public-keys --user-name "${iam_username}" --query "SSHPublicKeys[?Status == 'Active'].[SSHPublicKeyId]" --output text | while read -r KeyId; do
-  aws iam get-ssh-public-key --user-name "${iam_username}" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
+    aws iam get-ssh-public-key --user-name "${iam_username}" --ssh-public-key-id "$KeyId" --encoding SSH --query "SSHPublicKey.SSHPublicKeyBody" --output text
 done
