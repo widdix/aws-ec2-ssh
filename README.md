@@ -1,6 +1,7 @@
 # Manage AWS EC2 SSH access with IAM
 
 > June 2019: Check out [Amazon EC2 Instance Connect](https://aws.amazon.com/blogs/compute/new-using-amazon-ec2-instance-connect-for-ssh-access-to-your-ec2-instances/) as a replacement for this project
+
 > September 2018: Check out [AWS Systems Manager Session Manager ](https://aws.amazon.com/de/blogs/aws/new-session-manager/) as a replacement for this project
 
 Use your IAM user's public SSH key to get access via SSH to an **EC2 instance** running
