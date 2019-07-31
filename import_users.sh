@@ -220,7 +220,11 @@ function clean_iam_username() {
     clean_username=${clean_username//"+"/".plus."}
     clean_username=${clean_username//"="/".equal."}
     clean_username=${clean_username//","/".comma."}
-    clean_username=${clean_username//"@"/".at."}
+    if [ "${STRIP_EMAILS_FROM_USERNAME}" -eq 1 ]; then
+        clean_username=${clean_username%%@*}
+    else
+        clean_username=${clean_username//"@"/".at."}
+    fi
     echo "${clean_username}"
 }
 
