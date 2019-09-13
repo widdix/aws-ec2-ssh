@@ -106,13 +106,29 @@ if ! [ -x "$(which git)" ]; then
     exit 1
 fi
 
-tmpdir=$(mktemp -d)
+SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
-cd "$tmpdir"
+# check if install script is part of a local git clone or downloaded as standalone
+SOURCE_LOCATION=""
+if [ -f $SCRIPTPATH/aws-ec2-ssh.conf ] && [ -d $SCRIPTPATH/.git/ ]; then
+	SOURCE_LOCATION="local";
+else
+	SOURCE_LOCATION="github";
+fi
 
-git clone -b "$RELEASE" https://github.com/widdix/aws-ec2-ssh.git
+echo "Source location: $SOURCE_LOCATION"
 
-cd "$tmpdir/aws-ec2-ssh"
+if [ $SOURCE_LOCATION == "github" ]; then
+	tmpdir=$(mktemp -d)
+
+	cd "$tmpdir"
+
+	git clone -b "$RELEASE" https://github.com/widdix/aws-ec2-ssh.git
+	
+	cd "$tmpdir/aws-ec2-ssh"
+else
+	cd $SCRIPTPATH
+fi
 
 cp authorized_keys_command.sh $AUTHORIZED_KEYS_COMMAND_FILE
 cp import_users.sh $IMPORT_USERS_SCRIPT_FILE
