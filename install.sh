@@ -12,14 +12,20 @@ Install import_users.sh and authorized_key_commands.
     -a, --assume <arn>              Assume a role before contacting AWS IAM to get users and keys.
                                     This can be used if you define your users in one AWS account, while the EC2
                                     instance you use this script runs in another.
-    --import-groups <group,group>   Which IAM groups have access to this instance
-                                    Comma seperated list of IAM groups. Leave empty for all available IAM users
+    --import-groups <group,group>   Import users from the IAM group(s) defined here (allow access to this instance).
+                                    Comma seperated list of IAM groups. Define an empty string for all available IAM users.
+    --import-groups-tag <tagKey>    Import users from the IAM group(s) defined here (allow access to this instance).
+                                    Key of a tag found on EC2 instance with a value as defined for <import-groups>.
+                                    One of import-groups or import-groups-tag must be defined.
     --local-groups <group,group>    Give the users these local UNIX groups
                                     Comma seperated list
-    --sudo-groups <group,group>     Specify IAM group(s) for users who should be given sudo privileges, or leave
-                                    empty to not change sudo access, or give it the value '##ALL##' to have all
-                                    users be given sudo rights.
+    --sudo-groups <group,group>     Grant users in IAM group(s) defined here sudo privileges.
+                                    Leave undefined or empty not grant sudo access, or provide the value '##ALL##'
+                                    to grant all imported users sudo rights.
                                     Comma seperated list
+    --sudo-groups-tag <tagKey>      Grant users in IAM group(s) defined here sudo privileges.
+                                    Key of a tag found on EC2 instance with a value as defined for <sudo-groups>.
+                                    Define either sudo-groups or sudo-groups-tag (not both).
     --useradd-program <program>     Specify your useradd program to use.
                                     Defaults to '/usr/sbin/useradd'
     --useradd-args <args string>    Specify arguments to use with useradd.
@@ -38,7 +44,9 @@ export IMPORT_USERS_SCRIPT_FILE="/opt/import_users.sh"
 export MAIN_CONFIG_FILE="/etc/aws-ec2-ssh.conf"
 
 IAM_GROUPS=""
+IAM_GROUPS_TAG=""
 SUDO_GROUPS=""
+SUDO_GROUPS_TAG=""
 LOCAL_GROUPS=""
 ASSUME_ROLE=""
 USERADD_PROGRAM=""
@@ -52,7 +60,7 @@ if [ $# == 0 ] ; then
 fi
 
 #Process input arguments with GNU getopt to support long args
-OPTS=`getopt -o hva:r: --l "assume:,import-groups:,sudo-groups:,local-groups:,useradd-program:,useradd-args:,release:,help" \
+OPTS=`getopt -o hva:r: --l "assume:,import-groups:,import-groups-tag:,sudo-groups:,sudo-groups-tag:,local-groups:,useradd-program:,useradd-args:,release:,help" \
              -n 'install.sh' -- "$@"`
 
 if [ $? != 0 ] ; then
@@ -75,8 +83,14 @@ do
         --import-groups )
             IAM_GROUPS="$2"
             shift 2;;
+        --import-groups-tag )
+            IAM_GROUPS_TAG="$2"
+            shift 2;;
         --sudo-groups )
             SUDO_GROUPS="$2"
+            shift 2;;
+        --sudo-groups-tag )
+            SUDO_GROUPS_TAG="$2"
             shift 2;;
         --local-groups )
             LOCAL_GROUPS="$2"
@@ -103,6 +117,16 @@ do
             break;;
     esac
 done
+
+if [ ! -z "$IAM_GROUPS" ] && [ ! -z "$IAM_GROUPS_TAG" ] ; then
+	echo "Define one of import-groups or import-groups-tag arguments, not both!"
+	exit 1
+fi
+
+if [ ! -z "$SUDO_GROUPS" ] && [ ! -z "$SUDO_GROUPS_TAG" ] ; then
+	echo "Define one of sudo-groups or sudo-groups-tag arguments, not both!"
+	exit 1
+fi
 
 export IAM_GROUPS
 export SUDO_GROUPS
@@ -156,9 +180,19 @@ then
     echo "IAM_AUTHORIZED_GROUPS=\"${IAM_GROUPS}\"" >> $MAIN_CONFIG_FILE
 fi
 
+if [ "${IAM_GROUPS_TAG}" != "" ]
+then
+    echo "IAM_AUTHORIZED_GROUPS_TAG=\"${IAM_GROUPS_TAG}\"" >> $MAIN_CONFIG_FILE
+fi
+
 if [ "${SUDO_GROUPS}" != "" ]
 then
     echo "SUDOERS_GROUPS=\"${SUDO_GROUPS}\"" >> $MAIN_CONFIG_FILE
+fi
+
+if [ "${SUDO_GROUPS_TAG}" != "" ]
+then
+    echo "SUDOERS_GROUPS_TAG=\"${SUDO_GROUPS_TAG}\"" >> $MAIN_CONFIG_FILE
 fi
 
 if [ "${LOCAL_GROUPS}" != "" ]
