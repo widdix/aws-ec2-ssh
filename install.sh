@@ -2,30 +2,31 @@
 
 show_help() {
 cat << EOF
-Usage: ${0##*/} [-hv] [-a ARN] [-i GROUP,GROUP,...] [-l GROUP,GROUP,...] [-s GROUP] [-p PROGRAM] [-u "ARGUMENTS"] [-r RELEASE]
+Usage: ${0##*/} [-hv] [--assume|-a <ARN>] [--import-groups <GROUP,...>] [--local-groups <GROUP,...>] [--sudo-groups <GROUP,...>]
+  [--useradd-program <PROGRAM>] [--useradd-args <ARGUMENTS>] [--release|-r <RELEASE>]
 Install import_users.sh and authorized_key_commands.
 
-    -h                 display this help and exit
-    -v                 verbose mode.
+    -h, --help                      display this help and exit
+    -v                              verbose mode.
 
-    -a arn             Assume a role before contacting AWS IAM to get users and keys.
-                       This can be used if you define your users in one AWS account, while the EC2
-                       instance you use this script runs in another.
-    -i group,group     Which IAM groups have access to this instance
-                       Comma seperated list of IAM groups. Leave empty for all available IAM users
-    -l group,group     Give the users these local UNIX groups
-                       Comma seperated list
-    -s group,group     Specify IAM group(s) for users who should be given sudo privileges, or leave
-                       empty to not change sudo access, or give it the value '##ALL##' to have all
-                       users be given sudo rights.
-                       Comma seperated list
-    -p program         Specify your useradd program to use.
-                       Defaults to '/usr/sbin/useradd'
-    -u "useradd args"  Specify arguments to use with useradd.
-                       Defaults to '--create-home --shell /bin/bash'
-    -r release         Specify a release of aws-ec2-ssh to download from GitHub. This argument is
-                       passed to \`git clone -b\` and so works with branches and tags.
-                       Defaults to 'master'
+    -a, --assume <arn>              Assume a role before contacting AWS IAM to get users and keys.
+                                    This can be used if you define your users in one AWS account, while the EC2
+                                    instance you use this script runs in another.
+    --import-groups <group,group>   Which IAM groups have access to this instance
+                                    Comma seperated list of IAM groups. Leave empty for all available IAM users
+    --local-groups <group,group>    Give the users these local UNIX groups
+                                    Comma seperated list
+    --sudo-groups <group,group>     Specify IAM group(s) for users who should be given sudo privileges, or leave
+                                    empty to not change sudo access, or give it the value '##ALL##' to have all
+                                    users be given sudo rights.
+                                    Comma seperated list
+    --useradd-program <program>     Specify your useradd program to use.
+                                    Defaults to '/usr/sbin/useradd'
+    --useradd-args <args string>    Specify arguments to use with useradd.
+                                    Defaults to '--create-home --shell /bin/bash'
+    -r, --release <release>         Specify a release of aws-ec2-ssh to download from GitHub. This argument is
+                                    passed to \`git clone -b\` and so works with branches and tags.
+                                    Defaults to 'master'
 
 
 EOF
@@ -44,46 +45,62 @@ USERADD_PROGRAM=""
 USERADD_ARGS=""
 RELEASE="master"
 
-while getopts :hva:i:l:s:p:u:r: opt
+if [ $# == 0 ] ; then
+	echo "No input arguments provided. Please provide one or more input arguments."
+	show_help
+	exit 1
+fi
+
+#Process input arguments with GNU getopt to support long args
+OPTS=`getopt -o hva:r: --l "assume:,import-groups:,sudo-groups:,local-groups:,useradd-program:,useradd-args:,release:,help" \
+             -n 'install.sh' -- "$@"`
+
+if [ $? != 0 ] ; then
+	echo "Error while processing input arguments..." >&2
+	exit 1
+fi
+
+eval set -- "$OPTS"
+
+while [[ $# -gt 0 ]];
 do
-    case $opt in
-        h)
+    case "$1" in
+        -h | --help )
             show_help
             exit 0
             ;;
-        i)
-            IAM_GROUPS="$OPTARG"
-            ;;
-        s)
-            SUDO_GROUPS="$OPTARG"
-            ;;
-        l)
-            LOCAL_GROUPS="$OPTARG"
-            ;;
-        v)
+        -v )
             set -x
-            ;;
-        a)
-            ASSUME_ROLE="$OPTARG"
-            ;;
-        p)
-            USERADD_PROGRAM="$OPTARG"
-            ;;
-        u)
-            USERADD_ARGS="$OPTARG"
-            ;;
-        r)
-            RELEASE="$OPTARG"
-            ;;
-        \?)
-            echo "Invalid option: -$OPTARG" >&2
+            shift ;;
+        --import-groups )
+            IAM_GROUPS="$2"
+            shift 2;;
+        --sudo-groups )
+            SUDO_GROUPS="$2"
+            shift 2;;
+        --local-groups )
+            LOCAL_GROUPS="$2"
+            shift 2;;
+        -a | --assume )
+            ASSUME_ROLE="$2"
+            shift 2;;
+        --useradd-program )
+            USERADD_PROGRAM="$2"
+            shift 2;;
+        --useradd-args )
+            USERADD_ARGS="$2"
+            shift 2;;
+        -r | --release )
+            RELEASE="$2"
+            shift 2;;
+        \? )
+            echo "Invalid option: $1" >&2
             show_help
             exit 1
             ;;
-        :)
-            echo "Option -$OPTARG requires an argument." >&2
-            show_help
-            exit 1
+        -- )
+            shift
+            break;;
     esac
 done
 
