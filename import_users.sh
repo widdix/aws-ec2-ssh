@@ -76,16 +76,15 @@ function setup_aws_credentials() {
     fi
 }
 
-# Get list of iam groups from tag
-function get_iam_groups_from_tag() {
-    if [ "${IAM_AUTHORIZED_GROUPS_TAG}" ]
-    then
-        IAM_AUTHORIZED_GROUPS=$(\
-            aws --region $REGION ec2 describe-tags \
-            --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$IAM_AUTHORIZED_GROUPS_TAG" \
-            --query "Tags[0].Value" --output text \
-        )
-    fi
+# Get EC2 tag value
+function get_ec2_tag_value() {
+	local tag_value=$(\
+		aws --region $REGION ec2 describe-tags \
+		--filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$1" \
+		--query "Tags[0].Value" --output text \
+	)
+
+	echo "$tag_value"
 }
 
 # Get all IAM users (optionally limited by IAM groups)
@@ -122,18 +121,6 @@ function get_local_users() {
     /usr/bin/getent group ${LOCAL_MARKER_GROUP} \
         | cut -d : -f4- \
         | sed "s/,/ /g"
-}
-
-# Get list of IAM groups marked with sudo access from tag
-function get_sudoers_groups_from_tag() {
-    if [ "${SUDOERS_GROUPS_TAG}" ]
-    then
-        SUDOERS_GROUPS=$(\
-            aws --region $REGION ec2 describe-tags \
-            --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$SUDOERS_GROUPS_TAG" \
-            --query "Tags[0].Value" --output text \
-        )
-    fi
 }
 
 # Get IAM users of the groups marked with sudo access
@@ -243,8 +230,15 @@ function sync_accounts() {
     local user
 
     # init group and sudoers from tags
-    get_iam_groups_from_tag
-    get_sudoers_groups_from_tag
+    if [ "${IAM_AUTHORIZED_GROUPS_TAG}" ]
+    then
+        IAM_AUTHORIZED_GROUPS=$(get_ec2_tag_value $IAM_AUTHORIZED_GROUPS_TAG)
+    fi
+
+    if [ "${SUDOERS_GROUPS_TAG}" ]
+    then
+        SUDOERS_GROUPS=$(get_ec2_tag_value $SUDOERS_GROUPS_TAG)
+    fi
 
     # setup the aws credentials if needed
     setup_aws_credentials
