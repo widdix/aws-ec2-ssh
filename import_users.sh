@@ -87,33 +87,32 @@ function get_ec2_tag_value() {
 	echo "$tag_value"
 }
 
-# Get all IAM users (optionally limited by IAM groups)
+# Get list of IAM users (in IAM groups if defined as input argument)
+# Optional argument: comma-separated list of IAM groups to return IAM users for
 function get_iam_users() {
-    local group
-    if [ -z "${IAM_AUTHORIZED_GROUPS}" ]
-    then
-        aws iam list-users \
-            --query "Users[].[UserName]" \
-            --output text \
-        | sed "s/\r//g"
-    else
-        for group in $(echo ${IAM_AUTHORIZED_GROUPS} | tr "," " "); do
-            aws iam get-group \
-                --group-name "${group}" \
-                --query "Users[].[UserName]" \
-                --output text \
-            | sed "s/\r//g"
-        done
-    fi
-}
-
-# Run all found iam users through clean_iam_username
-function get_clean_iam_users() {
-    local raw_username
-
-    for raw_username in $(get_iam_users); do
-        clean_iam_username "${raw_username}" | sed "s/\r//g"
-    done
+	local grouplist
+	if [ ! -z "$1" ]; then
+		grouplist=$1
+	fi
+	
+	local group
+	if [ -z "$grouplist" ]
+	then
+		aws iam list-users \
+		    --query "Users[].[UserName]" \
+		    --output text \
+		| sed "s/\r//g"
+		|| log "Error while retrieving all IAM users." && exit 1
+	else
+		for group in $(echo ${grouplist} | tr "," " "); do
+			aws iam get-group \
+			    --group-name "${group}" \
+			    --query "Users[].[UserName]" \
+			    --output text \
+			| sed "s/\r//g"
+			|| log "Error while retrieving IAM users for group '${group}'." && exit 1
+		done
+	fi
 }
 
 # Get previously synced users
@@ -121,28 +120,6 @@ function get_local_users() {
     /usr/bin/getent group ${LOCAL_MARKER_GROUP} \
         | cut -d : -f4- \
         | sed "s/,/ /g"
-}
-
-# Get IAM users of the groups marked with sudo access
-function get_sudoers_users() {
-    local group
-
-    [[ -z "${SUDOERS_GROUPS}" ]] || [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] ||
-        for group in $(echo "${SUDOERS_GROUPS}" | tr "," " "); do
-            aws iam get-group \
-                --group-name "${group}" \
-                --query "Users[].[UserName]" \
-                --output text
-        done
-}
-
-# Get the unix usernames of the IAM users within the sudo group
-function get_clean_sudoers_users() {
-    local raw_username
-
-    for raw_username in $(get_sudoers_users); do
-        clean_iam_username "${raw_username}"
-    done
 }
 
 # Create or update a local user based on info from the IAM group
@@ -202,13 +179,16 @@ function delete_local_user() {
     log "Deleted user ${1}"
 }
 
+#Convert iam username(s) to valid UNIX username(s) (converting illegal characters)
 function clean_iam_username() {
-    local clean_username="${1}"
-    clean_username=${clean_username//"+"/".plus."}
-    clean_username=${clean_username//"="/".equal."}
-    clean_username=${clean_username//","/".comma."}
-    clean_username=${clean_username//"@"/".at."}
-    echo "${clean_username}"
+    while read line; do
+        local clean_username="${line}"
+        clean_username=${clean_username//"+"/".plus."}
+        clean_username=${clean_username//"="/".equal."}
+        clean_username=${clean_username//","/".comma."}
+        clean_username=${clean_username//"@"/".at."}
+        echo "${clean_username}"
+    done < "${1:-/dev/stdin}"
 }
 
 function sync_accounts() {
@@ -243,18 +223,11 @@ function sync_accounts() {
     # setup the aws credentials if needed
     setup_aws_credentials
     
-    iam_users=$(get_clean_iam_users | sort | uniq)
-    if [[ -z "${iam_users}" ]]
-    then
-      log "we just got back an empty iam_users user list which is likely caused by an IAM outage!"
-      exit 1
-    fi
+    iam_users=$(get_iam_users "${IAM_AUTHORIZED_GROUPS}" | clean_iam_username | sort | uniq)
 
-    sudo_users=$(get_clean_sudoers_users | sort | uniq)
-    if [[ ! -z "${SUDOERS_GROUPS}" ]] && [[ ! "${SUDOERS_GROUPS}" == "##ALL##" ]] && [[ -z "${sudo_users}" ]]
+    if [[ ! -z "${SUDOERS_GROUPS}" ]] && [[ ! "${SUDOERS_GROUPS}" == "##ALL##" ]]
     then
-      log "we just got back an empty sudo_users user list which is likely caused by an IAM outage!"
-      exit 1
+        sudo_users=$(get_iam_users "${SUDOERS_GROUPS}" | clean_iam_username | sort | uniq)
     fi
 
     local_users=$(get_local_users | sort | uniq)
