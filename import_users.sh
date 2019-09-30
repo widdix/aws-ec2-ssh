@@ -1,13 +1,23 @@
-#!/bin/bash -e
+#!/bin/bash
+set -e -o pipefail
+
+trap "exit 1" TERM	#Trigger error exit when receiving TERM sign
+export TOP_PID=$$
 
 function log() {
     /usr/bin/logger -i -p auth.info -t aws-ec2-ssh "$@"
 }
 
+function exitlog() {
+    log "$@"
+    #send TERM sign to script to trigger full exit
+    kill -s TERM $TOP_PID
+    exit 1
+}
+
 # check if AWS CLI exists
 if ! [ -x "$(which aws)" ]; then
-    log "aws executable not found - exiting!"
-    exit 1
+    exitlog "aws executable not found - exiting!"
 fi
 
 # source configuration if it exists
@@ -18,8 +28,7 @@ fi
 
 if [ ${DONOTSYNC} -eq 1 ]
 then
-    log "Please configure aws-ec2-ssh by editing /etc/aws-ec2-ssh.conf"
-    exit 1
+    exitlog "Please configure aws-ec2-ssh by editing /etc/aws-ec2-ssh.conf"
 fi
 
 # Which IAM groups have access to this instance
@@ -101,16 +110,16 @@ function get_iam_users() {
 		aws iam list-users \
 		    --query "Users[].[UserName]" \
 		    --output text \
-		| sed "s/\r//g"
-		|| log "Error while retrieving all IAM users." && exit 1
+		| sed "s/\r//g" \
+		|| exitlog "Error while retrieving all IAM users."
 	else
 		for group in $(echo ${grouplist} | tr "," " "); do
 			aws iam get-group \
 			    --group-name "${group}" \
 			    --query "Users[].[UserName]" \
 			    --output text \
-			| sed "s/\r//g"
-			|| log "Error while retrieving IAM users for group '${group}'." && exit 1
+			| sed "s/\r//g" \
+			|| exitlog "Error while retrieving IAM users for group '${group}'"
 		done
 	fi
 }
@@ -135,8 +144,7 @@ function create_or_update_local_user() {
     # check that username contains only alphanumeric, period (.), underscore (_), and hyphen (-) for a safe eval
     if [[ ! "${username}" =~ ^[0-9a-zA-Z\._\-]{1,32}$ ]]
     then
-        log "Local user name ${username} contains illegal characters"
-        exit 1
+        exitlog "Local user name ${username} contains illegal characters"
     fi
 
     if [ ! -z "${LOCAL_GROUPS}" ]
@@ -194,8 +202,7 @@ function clean_iam_username() {
 function sync_accounts() {
     if [ -z "${LOCAL_MARKER_GROUP}" ]
     then
-        log "Please specify a local group to mark imported users. eg iam-synced-users"
-        exit 1
+        exitlog "Please specify a local group to mark imported users. eg iam-synced-users"
     fi
 
     # Check if local marker group exists, if not, create it
