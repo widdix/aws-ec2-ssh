@@ -87,41 +87,41 @@ function setup_aws_credentials() {
 
 # Get EC2 tag value
 function get_ec2_tag_value() {
-	local tag_value=$(\
-		aws --region $REGION ec2 describe-tags \
-		--filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$1" \
-		--query "Tags[0].Value" --output text \
-	)
+    local tag_value=$(\
+        aws --region $REGION ec2 describe-tags \
+        --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$1" \
+        --query "Tags[0].Value" --output text \
+    )
 
-	echo "$tag_value"
+    echo "$tag_value"
 }
 
 # Get list of IAM users (in IAM groups if defined as input argument)
 # Optional argument: comma-separated list of IAM groups to return IAM users for
 function get_iam_users() {
-	local grouplist
-	if [ ! -z "$1" ]; then
-		grouplist=$1
-	fi
-	
-	local group
-	if [ -z "$grouplist" ]
-	then
-		aws iam list-users \
-		    --query "Users[].[UserName]" \
-		    --output text \
-		| sed "s/\r//g" \
-		|| exitlog "Error while retrieving all IAM users."
-	else
-		for group in $(echo ${grouplist} | tr "," " "); do
-			aws iam get-group \
-			    --group-name "${group}" \
-			    --query "Users[].[UserName]" \
-			    --output text \
-			| sed "s/\r//g" \
-			|| exitlog "Error while retrieving IAM users for group '${group}'"
-		done
-	fi
+    local grouplist
+    if [ ! -z "$1" ]; then
+        grouplist=$1
+    fi
+
+    local group
+    if [ -z "$grouplist" ]
+    then
+        aws iam list-users \
+            --query "Users[].[UserName]" \
+            --output text \
+          | sed "s/\r//g" \
+          || exitlog "Error while retrieving all IAM users."
+    else
+        for group in $(echo ${grouplist} | tr "," " "); do
+            aws iam get-group \
+                --group-name "${group}" \
+                --query "Users[].[UserName]" \
+                --output text \
+              | sed "s/\r//g" \
+              || exitlog "Error while retrieving IAM users for group '${group}'"
+        done
+    fi
 }
 
 # Get previously synced users
