@@ -261,12 +261,12 @@ function sync_accounts() {
         sudo_users=$(get_iam_users "${SUDOERS_GROUPS}" | clean_iam_username | sort | uniq)
     fi
 
+    local groups
     if [[ ! -z "${LOCAL_GROUP_MAP}" ]]
     then
         get_json_keys='echo "$1" | jq -r "keys []"'
         get_json_valueconcat='echo "$1" | jq -r ".$2 | join(\",\")"'
 
-        local groups
         groups=$(bash -c "$get_json_keys" -- "${LOCAL_GROUP_MAP}")
 
         for localgroup in $groups; do
@@ -276,6 +276,14 @@ function sync_accounts() {
             local_group_users[$localgroup]=$(get_iam_users "${iam_group_list}" | clean_iam_username | sort | uniq)
         done
     fi
+
+    # Create local groups if they don't exist yet
+    for localgroup in $groups; do
+        if ! /usr/bin/getent group "${localgroup}" >/dev/null 2>&1; then
+            /usr/sbin/groupadd "${localgroup}"
+            log "Created local group '${localgroup}'"
+        fi
+    done
 
     local_users=$(get_local_users | sort | uniq)
 
