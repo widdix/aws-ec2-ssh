@@ -6,33 +6,38 @@ Usage: ${0##*/} [-hv] [--assume|-a <ARN>] [--import-groups <GROUP,...>] [--local
   [--useradd-program <PROGRAM>] [--useradd-args <ARGUMENTS>] [--release|-r <RELEASE>]
 Install import_users.sh and authorized_key_commands.
 
-    -h, --help                      display this help and exit
-    -v                              verbose mode.
+    -h, --help                          display this help and exit
+    -v                                  verbose mode.
 
-    -a, --assume <arn>              Assume a role before contacting AWS IAM to get users and keys.
-                                    This can be used if you define your users in one AWS account, while the EC2
-                                    instance you use this script runs in another.
-    --import-groups <group,group>   Import users from the IAM group(s) defined here (allow access to this instance).
-                                    Comma seperated list of IAM groups. Define an empty string for all available IAM users.
-    --import-groups-tag <tagKey>    Import users from the IAM group(s) defined here (allow access to this instance).
-                                    Key of a tag found on EC2 instance with a value as defined for <import-groups>.
-                                    One of import-groups or import-groups-tag must be defined.
-    --local-groups <group,group>    Give the users these local UNIX groups
-                                    Comma seperated list
-    --sudo-groups <group,group>     Grant users in IAM group(s) defined here sudo privileges.
-                                    Leave undefined or empty not grant sudo access, or provide the value '##ALL##'
-                                    to grant all imported users sudo rights.
-                                    Comma seperated list
-    --sudo-groups-tag <tagKey>      Grant users in IAM group(s) defined here sudo privileges.
-                                    Key of a tag found on EC2 instance with a value as defined for <sudo-groups>.
-                                    Define either sudo-groups or sudo-groups-tag (not both).
-    --useradd-program <program>     Specify your useradd program to use.
-                                    Defaults to '/usr/sbin/useradd'
-    --useradd-args <args string>    Specify arguments to use with useradd.
-                                    Defaults to '--create-home --shell /bin/bash'
-    -r, --release <release>         Specify a release of aws-ec2-ssh to download from GitHub. This argument is
-                                    passed to \`git clone -b\` and so works with branches and tags.
-                                    Defaults to 'master'
+    -a, --assume <arn>                  Assume a role before contacting AWS IAM to get users and keys.
+                                        This can be used if you define your users in one AWS account, while the EC2
+                                        instance you use this script runs in another.
+    --import-groups <group,group>       Import users from the IAM group(s) defined here (allow access to this instance).
+                                        Comma seperated list of IAM groups. Define an empty string for all available IAM users.
+    --import-groups-tag <tagKey>        Import users from the IAM group(s) defined here (allow access to this instance).
+                                        Key of a tag found on EC2 instance with a value as defined for <import-groups>.
+                                        One of import-groups or import-groups-tag must be defined.
+    --local-groups <group,group>        Add all imported users to these local UNIX groups
+                                        Comma seperated list
+    --local-group-map <json-groupmap>   Add specific iam-groups to specific local UNIX groups.
+                                        JSON-object
+                                        For every UNIX group defined (key), add all users from array of iam groups (value).
+    --local-group-map-tag <tagKey>      Give specific user groups specific local UNIX groups.
+                                        Key of a tag found on EC2 instance with a value as defined for <local-group-map>.
+    --sudo-groups <group,group>         Grant users in IAM group(s) defined here sudo privileges.
+                                        Leave undefined or empty not grant sudo access, or provide the value '##ALL##'
+                                        to grant all imported users sudo rights.
+                                        Comma seperated list
+    --sudo-groups-tag <tagKey>          Grant users in IAM group(s) defined here sudo privileges.
+                                        Key of a tag found on EC2 instance with a value as defined for <sudo-groups>.
+                                        Define either sudo-groups or sudo-groups-tag (not both).
+    --useradd-program <program>         Specify your useradd program to use.
+                                        Defaults to '/usr/sbin/useradd'
+    --useradd-args <args string>        Specify arguments to use with useradd.
+                                        Defaults to '--create-home --shell /bin/bash'
+    -r, --release <release>             Specify a release of aws-ec2-ssh to download from GitHub. This argument is
+                                        passed to \`git clone -b\` and so works with branches and tags.
+                                        Defaults to 'master'
 
 
 EOF
@@ -48,6 +53,8 @@ IAM_GROUPS_TAG=""
 SUDO_GROUPS=""
 SUDO_GROUPS_TAG=""
 LOCAL_GROUPS=""
+LOCAL_GROUP_MAP=""
+LOCAL_GROUP_MAP_TAG=""
 ASSUME_ROLE=""
 USERADD_PROGRAM=""
 USERADD_ARGS=""
@@ -60,7 +67,7 @@ if [ $# == 0 ] ; then
 fi
 
 #Process input arguments with GNU getopt to support long args
-OPTS=`getopt -o hva:r: --l "assume:,import-groups:,import-groups-tag:,sudo-groups:,sudo-groups-tag:,local-groups:,useradd-program:,useradd-args:,release:,help" \
+OPTS=`getopt -o hva:r: --l "assume:,import-groups:,import-groups-tag:,sudo-groups:,sudo-groups-tag:,local-groups:,local-group-map:,local-group-map-tag:,useradd-program:,useradd-args:,release:,help" \
              -n 'install.sh' -- "$@"`
 
 if [ $? != 0 ] ; then
@@ -94,6 +101,12 @@ do
             shift 2;;
         --local-groups )
             LOCAL_GROUPS="$2"
+            shift 2;;
+        --local-group-map )
+            LOCAL_GROUP_MAP="$2"
+            shift 2;;
+        --local-group-map-tag )
+            LOCAL_GROUP_MAP_TAG="$2"
             shift 2;;
         -a | --assume )
             ASSUME_ROLE="$2"
@@ -198,6 +211,16 @@ fi
 if [ "${LOCAL_GROUPS}" != "" ]
 then
     echo "LOCAL_GROUPS=\"${LOCAL_GROUPS}\"" >> $MAIN_CONFIG_FILE
+fi
+
+if [ "${LOCAL_GROUP_MAP}" != "" ]
+then
+    echo "LOCAL_GROUP_MAP='${LOCAL_GROUP_MAP}'" >> $MAIN_CONFIG_FILE
+fi
+
+if [ "${LOCAL_GROUP_MAP_TAG}" != "" ]
+then
+    echo "LOCAL_GROUP_MAP_TAG=\"${LOCAL_GROUP_MAP_TAG}\"" >> $MAIN_CONFIG_FILE
 fi
 
 if [ "${ASSUME_ROLE}" != "" ]

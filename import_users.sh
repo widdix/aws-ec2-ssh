@@ -38,8 +38,11 @@ fi
 # Special group to mark users as being synced by our script
 : ${LOCAL_MARKER_GROUP:="iam-synced-users"}
 
-# Give the users these local UNIX groups
+# Add all imported users to these local UNIX groups
 : ${LOCAL_GROUPS:=""}
+
+# Add specific iam-groups to specific local UNIX groups
+: ${LOCAL_GROUP_MAP:=""}
 
 # Specify an IAM group for users who should be given sudo privileges, or leave
 # empty to not change sudo access, or give it the value '##ALL##' to have all
@@ -131,6 +134,17 @@ function get_local_users() {
         | sed "s/,/ /g"
 }
 
+# Check if a certain value can be found in given (new-line separated) list
+function in_list() {
+    local needle
+    local haystack
+
+    needle="${1}"
+    haystack="${2}"
+
+    echo "${haystack}" | grep -qx "${needle}"
+}
+
 # Create or update a local user based on info from the IAM group
 function create_or_update_local_user() {
     local username
@@ -139,17 +153,20 @@ function create_or_update_local_user() {
 
     username="${1}"
     sudousers="${2}"
+
     localusergroups="${LOCAL_MARKER_GROUP}"
+    if [ ! -z "${3}" ]; then
+        localusergroups="${localusergroups},${3}"
+    fi
+    if [ ! -z "${LOCAL_GROUPS}" ]
+    then
+        localusergroups="${localusergroups},${LOCAL_GROUPS}"
+    fi
 
     # check that username contains only alphanumeric, period (.), underscore (_), and hyphen (-) for a safe eval
     if [[ ! "${username}" =~ ^[0-9a-zA-Z\._\-]{1,32}$ ]]
     then
         exitlog "Local user name ${username} contains illegal characters"
-    fi
-
-    if [ ! -z "${LOCAL_GROUPS}" ]
-    then
-        localusergroups="${LOCAL_GROUPS},${LOCAL_MARKER_GROUP}"
     fi
 
     if ! id "${username}" >/dev/null 2>&1; then
@@ -164,7 +181,7 @@ function create_or_update_local_user() {
     then
         SaveUserFileName=$(echo "${username}" | tr "." " ")
         SaveUserSudoFilePath="/etc/sudoers.d/$SaveUserFileName"
-        if [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] || echo "${sudousers}" | grep "^${username}\$" > /dev/null
+        if [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] || in_list "${username}" "${sudousers}"
         then
             echo "${username} ALL=(ALL) NOPASSWD:ALL" > "${SaveUserSudoFilePath}"
         else
@@ -215,26 +232,49 @@ function sync_accounts() {
     local intersection
     local removed_users
     local user
+    declare -A local_group_users
 
-    # init group and sudoers from tags
+    # init import-groups, sudoers and group-map from tags
     if [ "${IAM_AUTHORIZED_GROUPS_TAG}" ]
     then
-        IAM_AUTHORIZED_GROUPS=$(get_ec2_tag_value $IAM_AUTHORIZED_GROUPS_TAG)
+        IAM_AUTHORIZED_GROUPS=$(get_ec2_tag_value "$IAM_AUTHORIZED_GROUPS_TAG")
     fi
 
     if [ "${SUDOERS_GROUPS_TAG}" ]
     then
-        SUDOERS_GROUPS=$(get_ec2_tag_value $SUDOERS_GROUPS_TAG)
+        SUDOERS_GROUPS=$(get_ec2_tag_value "$SUDOERS_GROUPS_TAG")
+    fi
+
+    if [ "${LOCAL_GROUP_MAP_TAG}" ]
+    then
+        LOCAL_GROUP_MAP=$(get_ec2_tag_value "$LOCAL_GROUP_MAP_TAG")
     fi
 
     # setup the aws credentials if needed
     setup_aws_credentials
     
+    # Convert all groups to users
     iam_users=$(get_iam_users "${IAM_AUTHORIZED_GROUPS}" | clean_iam_username | sort | uniq)
 
     if [[ ! -z "${SUDOERS_GROUPS}" ]] && [[ ! "${SUDOERS_GROUPS}" == "##ALL##" ]]
     then
         sudo_users=$(get_iam_users "${SUDOERS_GROUPS}" | clean_iam_username | sort | uniq)
+    fi
+
+    if [[ ! -z "${LOCAL_GROUP_MAP}" ]]
+    then
+        get_json_keys='echo "$1" | jq -r "keys []"'
+        get_json_valueconcat='echo "$1" | jq -r ".$2 | join(\",\")"'
+
+        local groups
+        groups=$(bash -c "$get_json_keys" -- "${LOCAL_GROUP_MAP}")
+
+        for localgroup in $groups; do
+            # Parse the iam-groups
+            iam_group_list=$(bash -c "$get_json_valueconcat" -- "${LOCAL_GROUP_MAP}" "${localgroup}")
+            # Retrieve the users
+            local_group_users[$localgroup]=$(get_iam_users "${iam_group_list}" | clean_iam_username | sort | uniq)
+        done
     fi
 
     local_users=$(get_local_users | sort | uniq)
@@ -246,7 +286,17 @@ function sync_accounts() {
     for user in ${iam_users}; do
         if [ "${#user}" -le "32" ]
         then
-            create_or_update_local_user "${user}" "$sudo_users"
+            local user_groups
+            user_groups=""
+
+            for group in ${!local_group_users[@]}; do
+                if in_list "$user" "${local_group_users[$group]}"; then
+                    user_groups=${user_groups}",$group"
+                fi
+            done
+            user_groups="${user_groups:1}"
+
+            create_or_update_local_user "${user}" "$sudo_users" "$user_groups"
         else
             log "Can not import IAM user ${user}. User name is longer than 32 characters."
         fi
