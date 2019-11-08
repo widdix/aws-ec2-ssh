@@ -180,7 +180,7 @@ function create_or_update_local_user() {
 
     if [ ! -z $localusergroups ]
     then
-        /usr/sbin/usermod -a -G "${localusergroups}" "${username}"
+        /usr/sbin/usermod -G "${localusergroups}" "${username}"
     fi
 
     # Should we add this user to sudo ?
