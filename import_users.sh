@@ -193,8 +193,12 @@ function create_or_update_local_user() {
         if [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] || in_list "${username}" "${sudousers}"
         then
             echo "${username} ALL=(ALL) NOPASSWD:ALL" > "${SaveUserSudoFilePath}"
+            log "Granted sudo access for user '${username}'"
         else
-            [[ ! -f "${SaveUserSudoFilePath}" ]] || rm "${SaveUserSudoFilePath}"
+            if [[ -f "${SaveUserSudoFilePath}" ]] ; then
+                rm "${SaveUserSudoFilePath}"
+                log "Revoked sudo access for user '${username}'"
+            fi
         fi
     fi
 }
