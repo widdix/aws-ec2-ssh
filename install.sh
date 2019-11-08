@@ -68,6 +68,7 @@ RELEASE="master"
 LOCAL_MARKER_GROUP="iam-synced-users"
 CLEAN_STATE="0"
 STATE_SYNCED_USERS=""
+STATE_MANAGED_GROUPS=""
 
 if [ $# == 0 ] ; then
 	echo "No input arguments provided. Please provide one or more input arguments."
@@ -282,6 +283,9 @@ fi
 #Write state file
 cat /dev/null > $MAIN_STATE_FILE
 echo "STATE_SYNCED_USERS=\"$STATE_SYNCED_USERS\"" >> $MAIN_STATE_FILE
+if [ ! -z $STATE_MANAGED_GROUPS ]; then
+    echo "STATE_MANAGED_GROUPS=\"$STATE_MANAGED_GROUPS\"" >> $MAIN_STATE_FILE
+fi
 
 ./install_configure_selinux.sh
 

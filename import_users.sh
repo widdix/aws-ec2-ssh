@@ -34,6 +34,8 @@ fi
 # Default state values
 # Current locally synced users
 : ${STATE_SYNCED_USERS:=""}
+# Current local groups managed by aws-ec2-ssh
+: ${STATE_MANAGED_GROUPS:=""}
 
 # Should we actually do something?
 : ${DONOTSYNC:=0}
@@ -197,6 +199,13 @@ function create_or_update_local_user() {
     fi
 }
 
+# Get space-separated list of users in local group (defined as input argument)
+function get_localgroup_users() {
+    get_group_members='/usr/bin/getent group $1 | cut -d : -f4- | sed "s/,/ /g"'
+
+    bash -c "$get_group_members" -- "$1"
+}
+
 function delete_local_user() {
     # First, make sure no new sessions can be started
     /usr/sbin/usermod -L -s /sbin/nologin "${1}" || true
@@ -230,6 +239,7 @@ function sync_accounts() {
     local sudo_users
     local local_users
     local synced_users
+    local managed_groups
     local intersection
     local removed_users
     local user
@@ -249,6 +259,11 @@ function sync_accounts() {
     if [ "${LOCAL_GROUP_MAP_TAG}" ]
     then
         LOCAL_GROUP_MAP=$(get_ec2_tag_value "$LOCAL_GROUP_MAP_TAG")
+    fi
+
+    # init managed_groups from state
+    if [ ! -z "$STATE_MANAGED_GROUPS" ]; then
+        managed_groups=" $STATE_MANAGED_GROUPS"
     fi
 
     # setup the aws credentials if needed
@@ -282,9 +297,12 @@ function sync_accounts() {
     for localgroup in $groups; do
         if ! /usr/bin/getent group "${localgroup}" >/dev/null 2>&1; then
             /usr/sbin/groupadd "${localgroup}"
+            managed_groups="$managed_groups $localgroup"
             log "Created local group '${localgroup}'"
         fi
     done
+
+    managed_groups="${managed_groups:1}"
 
     local_users=$(echo "$STATE_SYNCED_USERS" | tr " " "\n" | sort | uniq)
 
@@ -319,9 +337,24 @@ function sync_accounts() {
         delete_local_user "${user}"
     done
 
+    # Remove script-managed groups no longer having any members
+    local remaining_groups=""
+    for group in ${managed_groups}; do
+        local group_users=$(get_localgroup_users $group)
+        if [ -z "$group_users" ]; then
+            delgroup --only-if-empty $group
+            log "Deleted local group '${group}'"
+        else
+            remaining_groups="$remaining_groups $group"
+        fi
+    done
+    
+    STATE_MANAGED_GROUPS="${remaining_groups:1}"
+
     # Update state file
     cat /dev/null > $MAIN_STATE_FILE
     echo "STATE_SYNCED_USERS=\"$STATE_SYNCED_USERS\"" >> $MAIN_STATE_FILE
+    echo "STATE_MANAGED_GROUPS=\"$STATE_MANAGED_GROUPS\"" >> $MAIN_STATE_FILE
 }
 
 sync_accounts
