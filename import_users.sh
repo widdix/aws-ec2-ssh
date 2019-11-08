@@ -23,6 +23,18 @@ fi
 # source configuration if it exists
 [ -f /etc/aws-ec2-ssh.conf ] && . /etc/aws-ec2-ssh.conf
 
+# source state file if it exists, error otherwise
+MAIN_STATE_FILE="/etc/aws-ec2-ssh.state"
+if [ -f $MAIN_STATE_FILE ]; then
+    . $MAIN_STATE_FILE
+else
+    exitlog "Please initiate a state file at $MAIN_STATE_FILE"
+fi
+
+# Default state values
+# Current locally synced users
+: ${STATE_SYNCED_USERS:=""}
+
 # Should we actually do something?
 : ${DONOTSYNC:=0}
 
@@ -34,9 +46,6 @@ fi
 # Which IAM groups have access to this instance
 # Comma seperated list of IAM groups. Leave empty for all available IAM users
 : ${IAM_AUTHORIZED_GROUPS:=""}
-
-# Special group to mark users as being synced by our script
-: ${LOCAL_MARKER_GROUP:="iam-synced-users"}
 
 # Add all imported users to these local UNIX groups
 : ${LOCAL_GROUPS:=""}
@@ -127,13 +136,6 @@ function get_iam_users() {
     fi
 }
 
-# Get previously synced users
-function get_local_users() {
-    /usr/bin/getent group ${LOCAL_MARKER_GROUP} \
-        | cut -d : -f4- \
-        | sed "s/,/ /g"
-}
-
 # Check if a certain value can be found in given (new-line separated) list
 function in_list() {
     local needle
@@ -154,7 +156,7 @@ function create_or_update_local_user() {
     username="${1}"
     sudousers="${2}"
 
-    localusergroups="${LOCAL_MARKER_GROUP}"
+    localusergroups=""
     if [ ! -z "${3}" ]; then
         localusergroups="${localusergroups},${3}"
     fi
@@ -162,6 +164,7 @@ function create_or_update_local_user() {
     then
         localusergroups="${localusergroups},${LOCAL_GROUPS}"
     fi
+    localusergroups="${localusergroups:1}"
 
     # check that username contains only alphanumeric, period (.), underscore (_), and hyphen (-) for a safe eval
     if [[ ! "${username}" =~ ^[0-9a-zA-Z\._\-]{1,32}$ ]]
@@ -174,7 +177,11 @@ function create_or_update_local_user() {
         /bin/chown -R "${username}:${username}" "$(eval echo ~$username)"
         log "Created new user ${username}"
     fi
-    /usr/sbin/usermod -a -G "${localusergroups}" "${username}"
+
+    if [ ! -z $localusergroups ]
+    then
+        /usr/sbin/usermod -a -G "${localusergroups}" "${username}"
+    fi
 
     # Should we add this user to sudo ?
     if [[ ! -z "${SUDOERS_GROUPS}" ]]
@@ -217,18 +224,12 @@ function clean_iam_username() {
 }
 
 function sync_accounts() {
-    if [ -z "${LOCAL_MARKER_GROUP}" ]
-    then
-        exitlog "Please specify a local group to mark imported users. eg iam-synced-users"
-    fi
-
-    # Check if local marker group exists, if not, create it
-    /usr/bin/getent group "${LOCAL_MARKER_GROUP}" >/dev/null 2>&1 || /usr/sbin/groupadd "${LOCAL_MARKER_GROUP}"
 
     # declare and set some variables
     local iam_users
     local sudo_users
     local local_users
+    local synced_users
     local intersection
     local removed_users
     local user
@@ -285,10 +286,10 @@ function sync_accounts() {
         fi
     done
 
-    local_users=$(get_local_users | sort | uniq)
+    local_users=$(echo "$STATE_SYNCED_USERS" | tr " " "\n" | sort | uniq)
 
-    intersection=$(echo ${local_users} ${iam_users} | tr " " "\n" | sort | uniq -D | uniq)
-    removed_users=$(echo ${local_users} ${intersection} | tr " " "\n" | sort | uniq -u)
+    intersection=$(echo -e "${local_users}\n${iam_users}" | tr " " "\n" | sort | uniq -D | uniq)
+    removed_users=$(echo -e "${local_users}\n${intersection}" | tr " " "\n" | sort | uniq -u)
 
     # Add or update the users found in IAM
     for user in ${iam_users}; do
@@ -305,15 +306,22 @@ function sync_accounts() {
             user_groups="${user_groups:1}"
 
             create_or_update_local_user "${user}" "$sudo_users" "$user_groups"
+
+            synced_users="$synced_users $user"
         else
             log "Can not import IAM user ${user}. User name is longer than 32 characters."
         fi
     done
+    STATE_SYNCED_USERS="${synced_users:1}"
 
     # Remove users no longer in the IAM group(s)
     for user in ${removed_users}; do
         delete_local_user "${user}"
     done
+
+    # Update state file
+    cat /dev/null > $MAIN_STATE_FILE
+    echo "STATE_SYNCED_USERS=\"$STATE_SYNCED_USERS\"" >> $MAIN_STATE_FILE
 }
 
 sync_accounts

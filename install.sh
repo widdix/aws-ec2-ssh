@@ -35,6 +35,10 @@ Install import_users.sh and authorized_key_commands.
                                         Defaults to '/usr/sbin/useradd'
     --useradd-args <args string>        Specify arguments to use with useradd.
                                         Defaults to '--create-home --shell /bin/bash'
+    --local-marker-group <groupname>    Local group will be searched and transfered to state file if found. (legacy support)
+                                        Define empty string to disable this check.
+                                        Defaults to 'iam-synced-users'
+    --clean-state                       When defined, the state file will be wiped clean before running installation.
     -r, --release <release>             Specify a release of aws-ec2-ssh to download from GitHub. This argument is
                                         passed to \`git clone -b\` and so works with branches and tags.
                                         Defaults to 'master'
@@ -47,6 +51,7 @@ export SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
 export AUTHORIZED_KEYS_COMMAND_FILE="/opt/authorized_keys_command.sh"
 export IMPORT_USERS_SCRIPT_FILE="/opt/import_users.sh"
 export MAIN_CONFIG_FILE="/etc/aws-ec2-ssh.conf"
+export MAIN_STATE_FILE="/etc/aws-ec2-ssh.state"
 
 IAM_GROUPS=""
 IAM_GROUPS_TAG=""
@@ -59,6 +64,10 @@ ASSUME_ROLE=""
 USERADD_PROGRAM=""
 USERADD_ARGS=""
 RELEASE="master"
+
+LOCAL_MARKER_GROUP="iam-synced-users"
+CLEAN_STATE="0"
+STATE_SYNCED_USERS=""
 
 if [ $# == 0 ] ; then
 	echo "No input arguments provided. Please provide one or more input arguments."
@@ -116,6 +125,12 @@ do
             shift 2;;
         --useradd-args )
             USERADD_ARGS="$2"
+            shift 2;;
+        --local-marker-group )
+            LOCAL_MARKER_GROUP="$2"
+            shift 2;;
+        --clean-state )
+            CLEAN_STATE="1"
             shift 2;;
         -r | --release )
             RELEASE="$2"
@@ -184,8 +199,22 @@ else
 	cd $SCRIPTPATH
 fi
 
+# Get space-separated list of users in local group (defined as input argument)
+function get_localgroup_users() {
+    get_group_members='/usr/bin/getent group $1 | cut -d : -f4- | sed "s/,/ /g"'
+
+    bash -c "$get_group_members" -- "$1"
+}
+
+if [ $CLEAN_STATE != "0" ] && [ -f $MAIN_STATE_FILE ]
+then
+     . $MAIN_STATE_FILE
+fi
+
 cp authorized_keys_command.sh $AUTHORIZED_KEYS_COMMAND_FILE
 cp import_users.sh $IMPORT_USERS_SCRIPT_FILE
+
+#Write config file
 cat /dev/null > $MAIN_CONFIG_FILE
 
 if [ "${IAM_GROUPS}" != "" ]
@@ -237,6 +266,22 @@ if [ "${USERADD_ARGS}" != "" ]
 then
     echo "USERADD_ARGS=\"${USERADD_ARGS}\"" >> $MAIN_CONFIG_FILE
 fi
+
+# If LOCAL_MARKER_GROUP exists, transfer members to state file (legacy transfer support)
+if [ ! -z $LOCAL_MARKER_GROUP ] && getent group "${LOCAL_MARKER_GROUP}" >/dev/null 2>&1
+then
+    echo "Transfering users from $LOCAL_MARKER_GROUP to state file $MAIN_STATE_FILE..."
+    # Transfer users to state file
+    STATE_SYNCED_USERS=$(get_localgroup_users "$LOCAL_MARKER_GROUP")
+
+    # Delete group $LOCAL_MARKER_GROUP
+    delete_group='groupdel $1'
+    bash -c "$delete_group" -- "$LOCAL_MARKER_GROUP"
+fi
+
+#Write state file
+cat /dev/null > $MAIN_STATE_FILE
+echo "STATE_SYNCED_USERS=\"$STATE_SYNCED_USERS\"" >> $MAIN_STATE_FILE
 
 ./install_configure_selinux.sh
 
