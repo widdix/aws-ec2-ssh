@@ -77,7 +77,7 @@ if [ $# == 0 ] ; then
 fi
 
 #Process input arguments with GNU getopt to support long args
-OPTS=`getopt -o hva:r: --l "assume:,import-groups:,import-groups-tag:,sudo-groups:,sudo-groups-tag:,local-groups:,local-group-map:,local-group-map-tag:,useradd-program:,useradd-args:,release:,help" \
+OPTS=`getopt -o hva:r: --l "assume:,import-groups:,import-groups-tag:,sudo-groups:,sudo-groups-tag:,local-groups:,local-group-map:,local-group-map-tag:,useradd-program:,useradd-args:,local-marker-group:,clean-state,release:,help" \
              -n 'install.sh' -- "$@"`
 
 if [ $? != 0 ] ; then
@@ -207,7 +207,7 @@ function get_localgroup_users() {
     bash -c "$get_group_members" -- "$1"
 }
 
-if [ $CLEAN_STATE != "0" ] && [ -f $MAIN_STATE_FILE ]
+if [ "$CLEAN_STATE" == "0" ] && [ -f $MAIN_STATE_FILE ]
 then
      . $MAIN_STATE_FILE
 fi
