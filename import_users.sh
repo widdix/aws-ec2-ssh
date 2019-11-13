@@ -193,10 +193,7 @@ function create_or_update_local_user() {
         log "Created new user ${username}"
     fi
 
-    if [ ! -z $localusergroups ]
-    then
-        /usr/sbin/usermod -G "${localusergroups}" "${username}"
-    fi
+    /usr/sbin/usermod -G "${localusergroups}" "${username}"
 
     # Should we add this user to sudo ?
     if [[ ! -z "${SUDOERS_GROUPS}" ]]
