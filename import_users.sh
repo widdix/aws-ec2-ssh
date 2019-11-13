@@ -107,6 +107,19 @@ function get_ec2_tag_value() {
         --query "Tags[0].Value" --output text \
     )
 
+    if [ $? != 0 ] ; then
+        exitlog "Error retrieving EC2 tag value for '$1'."
+    fi
+
+    if [ "$tag_value" == "None" ] ; then
+        warn_msg="Warning: EC2 tag key '$1' not found."
+
+        echo "$warn_msg" >&2
+        log "$warn_msg"
+
+        tag_value=""
+    fi
+
     echo "$tag_value"
 }
 
