@@ -205,8 +205,10 @@ function create_or_update_local_user() {
         SaveUserSudoFilePath="/etc/sudoers.d/$SaveUserFileName"
         if [[ "${SUDOERS_GROUPS}" == "##ALL##" ]] || in_list "${username}" "${sudousers}"
         then
-            echo "${username} ALL=(ALL) NOPASSWD:ALL" > "${SaveUserSudoFilePath}"
-            log "Granted sudo access for user '${username}'"
+            if [[ ! -f "${SaveUserSudoFilePath}" ]] ; then
+                echo "${username} ALL=(ALL) NOPASSWD:ALL" > "${SaveUserSudoFilePath}"
+                log "Granted sudo access for user '${username}'"
+            fi
         else
             if [[ -f "${SaveUserSudoFilePath}" ]] ; then
                 rm "${SaveUserSudoFilePath}"
