@@ -105,7 +105,7 @@ one or more of the following lines:
 
 ```
 ASSUMEROLE="IAM-role-arn"                         # IAM Role ARN for multi account. See below for more info
-IAM_AUTHORIZED_GROUPS="GROUPNAMES"                # Comma separated list of IAM groups to import
+IAM_AUTHORIZED_GROUPS="GROUPNAMES"                # Comma separated list of IAM groups to import or `##ALL##` to import all available IAM users
 SUDOERS_GROUPS="GROUPNAMES"                       # Comma seperated list of IAM groups that should have sudo access or `##ALL##` to allow all users
 IAM_AUTHORIZED_GROUPS_TAG="KeyTag"                # Key Tag of EC2 that contains a Comma separated list of IAM groups to import - IAM_AUTHORIZED_GROUPS_TAG will override IAM_AUTHORIZED_GROUPS, you can use only one of them
 SUDOERS_GROUPS_TAG="KeyTag"                       # Key Tag of EC2 that contains a Comma separated list of IAM groups that should have sudo access - SUDOERS_GROUPS_TAG will override SUDOERS_GROUPS, you can use only one of them

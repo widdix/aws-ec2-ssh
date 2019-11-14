@@ -13,7 +13,8 @@ Install import_users.sh and authorized_key_commands.
                                         This can be used if you define your users in one AWS account, while the EC2
                                         instance you use this script runs in another.
     --import-groups <group,group>       Import users from the IAM group(s) defined here (allow access to this instance).
-                                        Comma seperated list of IAM groups. Define an empty string for all available IAM users.
+                                        Comma seperated list of IAM groups. Provide the string '##ALL##' to import all
+                                        available IAM users.
     --import-groups-tag <tagKey>        Import users from the IAM group(s) defined here (allow access to this instance).
                                         Key of a tag found on EC2 instance with a value as defined for <import-groups>.
                                         One of import-groups or import-groups-tag must be defined.

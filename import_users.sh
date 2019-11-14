@@ -124,15 +124,17 @@ function get_ec2_tag_value() {
 }
 
 # Get list of IAM users (in IAM groups if defined as input argument)
-# Optional argument: comma-separated list of IAM groups to return IAM users for
+# input argument: comma-separated list of IAM groups to return IAM users for.
+#                 Define "##ALL##" as input value to retrieve all available IAM users
 function get_iam_users() {
-    local grouplist
-    if [ ! -z "$1" ]; then
-        grouplist=$1
+    local grouplist="$1"
+
+    if [ -z "$grouplist" ]
+    then
+        return 0
     fi
 
-    local group
-    if [ -z "$grouplist" ]
+    if [ "$grouplist" == "##ALL##" ]
     then
         aws iam list-users \
             --query "Users[].[UserName]" \
@@ -140,6 +142,7 @@ function get_iam_users() {
           | sed "s/\r//g" \
           || exitlog "Error while retrieving all IAM users."
     else
+        local group
         for group in $(echo ${grouplist} | tr "," " "); do
             aws iam get-group \
                 --group-name "${group}" \
