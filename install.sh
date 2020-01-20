@@ -224,6 +224,7 @@ SHELL=/bin/bash
 PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/aws/bin
 MAILTO=root
 HOME=/
+@reboot      root $IMPORT_USERS_SCRIPT_FILE
 */10 * * * * root $IMPORT_USERS_SCRIPT_FILE
 EOF
 chmod 0644 /etc/cron.d/import_users
