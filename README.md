@@ -21,7 +21,7 @@ A picture is worth a thousand words:
 ![Architecture](./docs/architecture.png?raw=true "Architecture")
 
 * On first start, all IAM users are imported and local UNIX users are created
-* The import also runs every 10 minutes (via cron - calls [`import_users.sh`](./import_users.sh))
+* The import also runs every 10 minutes and after every reboot (via cron - calls [`import_users.sh`](./import_users.sh))
 * You can control which IAM users get a local UNIX user and are therefore able to login
    * all (default)
    * only those in specific IAM groups
@@ -36,7 +36,7 @@ A picture is worth a thousand words:
 
 ### Demo with CloudFormation
 
-1. Upload your public SSH key to IAM: 
+1. Upload your public SSH key to IAM:
    1. Open the Users section in the [IAM Management Console](https://console.aws.amazon.com/iam/home#users)
    2. Click the row with your user
    3. Select the **Security Credentials** tab
@@ -51,7 +51,7 @@ A picture is worth a thousand words:
 
 ### Install via RPM
 
-1. Upload your public SSH key to IAM: 
+1. Upload your public SSH key to IAM:
    1. Open the Users section in the [IAM Management Console](https://console.aws.amazon.com/iam/home#users)
    2. Click the row with your user
    3. Select the **Security Credentials** tab
@@ -66,7 +66,7 @@ A picture is worth a thousand words:
 
 ### Install via install.sh script
 
-1. Upload your public SSH key to IAM: 
+1. Upload your public SSH key to IAM:
    1. Open the Users section in the [IAM Management Console](https://console.aws.amazon.com/iam/home#users)
    2. Click the row with your user
    3. Select the **Security Credentials** tab
@@ -104,21 +104,37 @@ There are a couple of things you can configure by editing/creating the file `/et
 one or more of the following lines:
 
 ```
-ASSUMEROLE="IAM-role-arn"                      # IAM Role ARN for multi account. See below for more info
-IAM_AUTHORIZED_GROUPS="GROUPNAMES"             # Comma separated list of IAM groups to import
-SUDOERS_GROUPS="GROUPNAMES"                    # Comma seperated list of IAM groups that should have sudo access or `##ALL##` to allow all users
-IAM_AUTHORIZED_GROUPS_TAG="KeyTag"             # Key Tag of EC2 that contains a Comma separated list of IAM groups to import - IAM_AUTHORIZED_GROUPS_TAG will override IAM_AUTHORIZED_GROUPS, you can use only one of them 
-SUDOERS_GROUPS_TAG="KeyTag"                    # Key Tag of EC2 that contains a Comma separated list of IAM groups that should have sudo access - SUDOERS_GROUPS_TAG will override SUDOERS_GROUPS, you can use only one of them
-SUDOERSGROUP="GROUPNAME"                       # Deprecated! IAM group that should have sudo access. Please use SUDOERS_GROUPS as this variable will be removed in future release.
-LOCAL_MARKER_GROUP="iam-synced-users"          # Dedicated UNIX group to mark imported users. Used for deleting removed IAM users
-LOCAL_GROUPS="GROUPNAMES"                      # Comma seperated list of UNIX groups to add the users in
-USERADD_PROGRAM="/usr/sbin/useradd"            # The useradd program to use. defaults to `/usr/sbin/useradd`
-USERADD_ARGS="--create-home --shell /bin/bash" # Arguments for the useradd program. defaults to `--create-home --shell /bin/bash`
+ASSUMEROLE="IAM-role-arn"                         # IAM Role ARN for multi account. See below for more info
+IAM_AUTHORIZED_GROUPS="GROUPNAMES"                # Comma separated list of IAM groups to import or `##ALL##` to import all available IAM users
+SUDOERS_GROUPS="GROUPNAMES"                       # Comma seperated list of IAM groups that should have sudo access or `##ALL##` to allow all users
+IAM_AUTHORIZED_GROUPS_TAG="KeyTag"                # Key Tag of EC2 that contains a Comma separated list of IAM groups to import - IAM_AUTHORIZED_GROUPS_TAG will override IAM_AUTHORIZED_GROUPS, you can use only one of them
+SUDOERS_GROUPS_TAG="KeyTag"                       # Key Tag of EC2 that contains a Comma separated list of IAM groups that should have sudo access - SUDOERS_GROUPS_TAG will override SUDOERS_GROUPS, you can use only one of them
+SUDOERSGROUP="GROUPNAME"                          # Deprecated! IAM group that should have sudo access. Please use SUDOERS_GROUPS as this variable will be removed in future release.
+LOCAL_MARKER_GROUP="iam-synced-users"             # Deprecated! Can only be defined during during installation for legacy transfer support.
+                                                  # Dedicated UNIX group previously used to track imported users
+                                                  # , enabling deletion of removed IAM users.
+                                                  # When found during installation, this group will be transfered to the state file
+                                                  # and deleted afterwards.
+LOCAL_GROUPS="GROUPNAMES"                         # Comma seperated list of UNIX groups to add the users in
+LOCAL_GROUP_MAP='{"local-group": ["iam-group"]}'  # JSON string indicating iam-groups to add to local-groups
+LOCAL_GROUP_MAP_TAG="KeyTag"                      # Key Tag of EC2 that contains a value for LOCAL_GROUP_MAP
+USERADD_PROGRAM="/usr/sbin/useradd"               # The useradd program to use. defaults to `/usr/sbin/useradd`
+USERADD_ARGS="--create-home --shell /bin/bash"    # Arguments for the useradd program. defaults to `--create-home --shell /bin/bash`
 ```
 
-The LOCAL_MARKER_GROUP will be created if it does not exist. BEWARE: DO NOT add any manually created users
-to this group as they will be deleted in the next sync. This group is used by aws-ec2-ssh to keep track
-of what users were imported in the last run.
+## State
+The install script will create a state file `/etc/aws-ec2-ssh.conf`. This file will hold the current state of
+syncing at any moment and is automatically created.
+
+__WARNING__: Editing this file is at own risk and strongly discouraged, as it can have unexpected consequences.  
+For example: adding manually created users to STATE_SYNCED_USERS could result in those users
+being deleted in the next sync if they are not found as iam-users to be imported.
+
+This file will contain one or more of the following lines:
+```
+STATE_SYNCED_USERS="user list"      # Space separated list of users currently synced between iam and local system.
+                                    # This list replaces the deprecated LOCAL_MARKER_GROUP configuration
+```
 
 ## Using a multi account strategy with a central IAM user account
 
