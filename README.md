@@ -21,7 +21,7 @@ A picture is worth a thousand words:
 ![Architecture](./docs/architecture.png?raw=true "Architecture")
 
 * On first start, all IAM users are imported and local UNIX users are created
-* The import also runs every 10 minutes (via cron - calls [`import_users.sh`](./import_users.sh))
+* The import also runs every 10 minutes and after every reboot (via cron - calls [`import_users.sh`](./import_users.sh))
 * You can control which IAM users get a local UNIX user and are therefore able to login
    * all (default)
    * only those in specific IAM groups
