@@ -114,6 +114,8 @@ LOCAL_MARKER_GROUP="iam-synced-users"          # Dedicated UNIX group to mark im
 LOCAL_GROUPS="GROUPNAMES"                      # Comma seperated list of UNIX groups to add the users in
 USERADD_PROGRAM="/usr/sbin/useradd"            # The useradd program to use. defaults to `/usr/sbin/useradd`
 USERADD_ARGS="--create-home --shell /bin/bash" # Arguments for the useradd program. defaults to `--create-home --shell /bin/bash`
+USERDEL_PROGRAM="/usr/sbin/userdel"            # The userdel program to use. defaults to `/usr/sbin/userdel`
+USERDEL_ARGS="--force --remove"                # Arguments for the userdel program. defaults to `--force --remove`
 ```
 
 The LOCAL_MARKER_GROUP will be created if it does not exist. BEWARE: DO NOT add any manually created users
