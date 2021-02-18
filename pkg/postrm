@@ -1,0 +1,47 @@
+# Post Removal Script
+
+# Helper functions
+# Get previously synced users
+function get_local_users() {
+    /usr/bin/getent group ${LOCAL_MARKER_GROUP} \
+        | cut -d : -f4- \
+        | sed "s/,/ /g"
+}
+
+function delete_local_user() {
+    # First, make sure no new sessions can be started
+    /usr/sbin/usermod -L -s /sbin/nologin "${1}" || true
+    # ask nicely and give them some time to shutdown
+    /usr/bin/pkill -15 -u "${1}" || true
+    sleep 5
+    # Dont want to close nicely? DIE!
+    /usr/bin/pkill -9 -u "${1}" || true
+    sleep 1
+    # Remove account now that all processes for the user are gone
+    $USERDEL_PROGRAM -f -r "${1}"
+    log "Deleted user ${1}"
+}
+
+# Clean Up sshd_config
+#
+# For removal, we should want to have these lines commented out in the configuration.
+# If the package is reinstalled, we grep for these commented lines and change them with sed
+sed -i 's:AuthorizedKeysCommand /usr/bin/authorized_keys_command.sh:#AuthorizedKeysCommand none:g' /etc/ssh/sshd_config
+sed -i 's:AuthorizedKeysCommandUser nobody:#AuthorizedKeysCommandUser nobody:g' /etc/ssh/sshd_config
+
+# Clean Up cron file
+# The cronfile should clean itself up (It's not marked as config, so it will remove every time)
+# but we will want to remove any users that we synced.
+local_users=$(get_local_users | sort | uniq)
+for user in ${local_users}; do
+    delete_local_user "${user}"
+done
+
+# Clean Up our configuration file
+# Conf files generally are kept when using `apt-get remove` or `apt erase`. 
+# The user can specify that the config file be purged from `/etc` by using
+# `apt-get remove --purge` or `apt purge`
+# when removing the package, so we do nothing.
+
+systemctl restart ssh.service
+systemctl restart cron.service
