@@ -81,98 +81,126 @@ Mappings:
         /bin/cfn-init --verbose --stack=${STACKNAME} --region=${REGION} --resource=Instance
         /bin/cfn-signal -e 0 --stack=${STACKNAME} --region=${REGION} --resource=Instance
   RegionMapAmazonLinux:
+    'af-south-1':
+      AMI: 'ami-0bd0ff98d5803baf2'
+    'eu-north-1':
+      AMI: 'ami-03d14071fbfdb6345'
     'ap-south-1':
-      AMI: 'ami-531a4c3c'
+      AMI: 'ami-031102d49fd792f54'
     'eu-west-3':
-      AMI: 'ami-8ee056f3'
+      AMI: 'ami-0bf262dcebfb032fe'
     'eu-west-2':
-      AMI: 'ami-403e2524'
+      AMI: 'ami-0ac220457a4ecc013'
+    'eu-south-1':
+      AMI: 'ami-01c317f645a88f29e'
     'eu-west-1':
-      AMI: 'ami-d834aba1'
+      AMI: 'ami-09c3a622d80fc8fb5'
+    'ap-northeast-3':
+      AMI: 'ami-008419a43a4dee425'
     'ap-northeast-2':
-      AMI: 'ami-863090e8'
+      AMI: 'ami-059143f9ca10c94c4'
+    'me-south-1':
+      AMI: 'ami-061126e80962772f4'
     'ap-northeast-1':
-      AMI: 'ami-ceafcba8'
+      AMI: 'ami-0023b115b784081c7'
     'sa-east-1':
-      AMI: 'ami-84175ae8'
+      AMI: 'ami-0bc4690de6ff8e9da'
     'ca-central-1':
-      AMI: 'ami-a954d1cd'
+      AMI: 'ami-0724329a0a9fbe54f'
+    'ap-east-1':
+      AMI: 'ami-09178b7c189f29d09'
     'ap-southeast-1':
-      AMI: 'ami-68097514'
+      AMI: 'ami-0c6eb4da54c38416e'
     'ap-southeast-2':
-      AMI: 'ami-942dd1f6'
+      AMI: 'ami-0641d8cd8757c7fbc'
     'eu-central-1':
-      AMI: 'ami-5652ce39'
+      AMI: 'ami-02d6b68c62d3a94f3'
     'us-east-1':
-      AMI: 'ami-97785bed'
+      AMI: 'ami-0a2c275b42dee0b81'
     'us-east-2':
-      AMI: 'ami-f63b1193'
+      AMI: 'ami-0080a5472dff19765'
     'us-west-1':
-      AMI: 'ami-824c4ee2'
+      AMI: 'ami-018656cf0fea785ca'
     'us-west-2':
-      AMI: 'ami-f2d3638a'
+      AMI: 'ami-06ab85f6beff39c19'
   RegionMapAmazonLinux2:
+    'af-south-1':
+      AMI: 'ami-070fc0373e6c22c97'
+    'eu-north-1':
+      AMI: 'ami-001c5f3c0a8b3f245'
     'ap-south-1':
-      AMI: 'ami-3b2f7954'
+      AMI: 'ami-041db4a969fe3eb68'
     'eu-west-3':
-      AMI: 'ami-5ce55321'
+      AMI: 'ami-0da7ba92c3c072475'
     'eu-west-2':
-      AMI: 'ami-6d263d09'
+      AMI: 'ami-074771aa49ab046e7'
+    'eu-south-1':
+      AMI: 'ami-07f0f6adab1daa189'
     'eu-west-1':
-      AMI: 'ami-db1688a2'
+      AMI: 'ami-0ed961fa828560210'
+    'ap-northeast-3':
+      AMI: 'ami-026107638e7d599b1'
     'ap-northeast-2':
-      AMI: 'ami-3e04a450'
+      AMI: 'ami-04e8dfc09b22389ad'
+    'me-south-1':
+      AMI: 'ami-0980753c2dfad9136'
     'ap-northeast-1':
-      AMI: 'ami-c2680fa4'
+      AMI: 'ami-02d36247c5bc58c23'
     'sa-east-1':
-      AMI: 'ami-f1337e9d'
+      AMI: 'ami-07983613af1a3ef44'
     'ca-central-1':
-      AMI: 'ami-7549cc11'
+      AMI: 'ami-0d8ad3ab25e7abc51'
+    'ap-east-1':
+      AMI: 'ami-0d41b14f11c68e677'
     'ap-southeast-1':
-      AMI: 'ami-4f89f533'
+      AMI: 'ami-07191cf2912e097a6'
     'ap-southeast-2':
-      AMI: 'ami-38708c5a'
+      AMI: 'ami-04a81599b183d7908'
     'eu-central-1':
-      AMI: 'ami-1b2bb774'
+      AMI: 'ami-047e03b8591f2d48a'
     'us-east-1':
-      AMI: 'ami-428aa838'
+      AMI: 'ami-01cc34ab2709337aa'
     'us-east-2':
-      AMI: 'ami-710e2414'
+      AMI: 'ami-0f19d220602031aed'
     'us-west-1':
-      AMI: 'ami-4a787a2a'
+      AMI: 'ami-0e0bf4b3a0c0e0adc'
     'us-west-2':
-      AMI: 'ami-7f43f307'
+      AMI: 'ami-0e5b6b6a9f3db6db8'
   RegionMapSUSELinuxEnterpriseServer:
+    'eu-north-1':
+      AMI: 'ami-03391c07852c73dbe'
     'ap-south-1':
-      AMI: 'ami-f7267298'
+      AMI: 'ami-0c1453eb750c7a5ab'
     'eu-west-3':
-      AMI: 'ami-f312a58e'
+      AMI: 'ami-07b20332d54ed21e8'
     'eu-west-2':
-      AMI: 'ami-fbcad29f'
+      AMI: 'ami-0eb4bd78fba2f32e4'
     'eu-west-1':
-      AMI: 'ami-32b6214b'
+      AMI: 'ami-06bc7889ee68f279e'
+    'ap-northeast-3':
+      AMI: 'ami-0b54f5c0822c3b02a'
     'ap-northeast-2':
-      AMI: 'ami-2eff5f40'
+      AMI: 'ami-00728f974fb4b3f2a'
     'ap-northeast-1':
-      AMI: 'ami-bddd41db'
+      AMI: 'ami-050f5170e43607893'
     'sa-east-1':
-      AMI: 'ami-b1a1e2dd'
+      AMI: 'ami-0188b2a9dc0ae5f44'
     'ca-central-1':
-      AMI: 'ami-61dc5905'
+      AMI: 'ami-0f7c9a39e20a9adea'
     'ap-southeast-1':
-      AMI: 'ami-ce7006b2'
+      AMI: 'ami-06190570cf455031a'
     'ap-southeast-2':
-      AMI: 'ami-15e81a77'
+      AMI: 'ami-0ccbc8eb74e84b8bd'
     'eu-central-1':
-      AMI: 'ami-7215851d'
+      AMI: 'ami-0fa9bde3f3d40e5ae'
     'us-east-1':
-      AMI: 'ami-a03869da'
+      AMI: 'ami-03adb8813ffd80f0b'
     'us-east-2':
-      AMI: 'ami-75143f10'
+      AMI: 'ami-0479b39f2d07530fb'
     'us-west-1':
-      AMI: 'ami-934242f3'
+      AMI: 'ami-05561250b8346a707'
     'us-west-2':
-      AMI: 'ami-6bc56f13'
+      AMI: 'ami-015ee9a0398544b09'
   RegionMapRHEL:
     'ap-south-1':
       AMI: 'ami-e41b618b'
@@ -205,30 +233,46 @@ Mappings:
     'us-west-2':
       AMI: 'ami-9fa343e7'
   RegionMapCentOS:
+    'af-south-1':
+      AMI: 'ami-0b761332115c38669'
+    'eu-north-1':
+      AMI: 'ami-0358414bac2039369'
     'ap-south-1':
-      AMI: 'ami-a691d8c9'
+      AMI: 'ami-0ffc7af9c06de0077'
+    'eu-west-3':
+      AMI: 'ami-072ec828dae86abe5'
     'eu-west-2':
-      AMI: 'ami-d5213fb1'
+      AMI: 'ami-0b22fcaf3564fb0c9'
+    'eu-south-1':
+      AMI: 'ami-0fe3899b62205176a'
     'eu-west-1':
-      AMI: 'ami-147fc16d'
+      AMI: 'ami-04f5641b0d178a27a'
     'ap-northeast-2':
-      AMI: 'ami-56a40238'
+      AMI: 'ami-0e4214f08b51e23cc'
+    'me-south-1':
+      AMI: 'ami-0ac17dcdd6f6f4eb6'
     'ap-northeast-1':
-      AMI: 'ami-1b27a37d'
+      AMI: 'ami-0ddea5e0f69c193a4'
     'sa-east-1':
-      AMI: 'ami-284d0a44'
+      AMI: 'ami-02334c45dd95ca1fc'
     'ca-central-1':
-      AMI: 'ami-161ea572'
+      AMI: 'ami-0a7c5b189b6460115'
+    'ap-east-1':
+      AMI: 'ami-09611bd6fa5dd0e3d'
+    'ap-southeast-1':
+      AMI: 'ami-0adfdaea54d40922b'
+    'ap-southeast-2':
+      AMI: 'ami-03d56f451ca110e99'
     'eu-central-1':
-      AMI: 'ami-8f62ece0'
+      AMI: 'ami-08b6d44b4f6f7b279'
     'us-east-1':
-      AMI: 'ami-95096eef'
+      AMI: 'ami-00e87074e52e6c9f9'
     'us-east-2':
-      AMI: 'ami-2d103948'
+      AMI: 'ami-00f8e2c955f7ffa9b'
     'us-west-1':
-      AMI: 'ami-c0bf85a0'
+      AMI: 'ami-08d2d8b00f270d03b'
     'us-west-2':
-      AMI: 'ami-02c71d7a'
+      AMI: 'ami-0686851c4e7b1a8e1'
 Conditions:
   UseCrossAccountIAM: !Not [!Equals [!Ref AssumeRole, '']]
   UseLocalIAM: !Equals [!Ref AssumeRole, '']

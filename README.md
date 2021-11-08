@@ -5,8 +5,8 @@
 > September 2018: Check out [AWS Systems Manager Session Manager ](https://aws.amazon.com/de/blogs/aws/new-session-manager/) as a replacement for this project
 
 Use your IAM user's public SSH key to get access via SSH to an **EC2 instance** running
-* Amazon Linux 2017.09
-* Amazon Linux 2 2017.12
+* Amazon Linux 2018.03
+* Amazon Linux 2
 * Ubuntu 16.04
 * SUSE Linux Enterprise Server 12 SP3
 * RHEL 7.4
